@@ -282,7 +282,7 @@
       <button class="tab active" onclick="switchTab('portfolio', this)">Portfolio</button>
       <button class="tab" onclick="switchTab('funds', this)">Funds</button>
       <button class="tab" onclick="switchTab('weekly', this)">Weekly report</button>
-      <button class="tab" onclick="switchTab('top10', this)">Top 10 today</button>
+      <button class="tab" onclick="switchTab('top10', this)">Top 10 this week</button>
     </div>
 
     <!-- Portfolio Panel -->
@@ -410,8 +410,9 @@
     <div id="panel-top10" class="panel">
       <div class="refresh-row">
         <div>
-          <span style="font-size:15px;font-weight:500;">Top gainers today</span>
-          <span class="last-updated" id="top10-updated" style="margin-left:12px;">—</span>
+          <span style="font-size:15px;font-weight:500;">🏆 Top 10 — Last Week's Best Performers</span>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">Ranked by weekly % gain · US stocks, ETFs &amp; crypto</div>
+          <span class="last-updated" id="top10-updated" style="display:block;margin-top:2px;">—</span>
         </div>
         <button class="btn-sm" onclick="loadTop10()">↻ Refresh</button>
       </div>
@@ -1105,9 +1106,6 @@ function weekCardHTML(s, weekly) {
 }
 
 /* ============================================================
-   TOP 10
-   ============================================================ */
-/* ============================================================
    TOP 10 GLOBAL GAINERS + NEWS
    ============================================================ */
 // Broad global watchlist: US stocks, Indian stocks, ETFs, crypto
@@ -1122,40 +1120,33 @@ let allTop10Data = [];
 let currentRegion = 'all';
 
 async function loadTop10() {
-  document.getElementById('top10-list').innerHTML = '<div class="loading-row"><span class="spin">↻</span> Loading top gainers…</div>';
+  document.getElementById('top10-list').innerHTML = '<div class="loading-row"><span class="spin">↻</span> Loading last week\'s top performers…</div>';
   document.getElementById('top10-news').innerHTML = '<div class="loading-row">Loading news…</div>';
   allTop10Data = [];
 
-  const FINNHUB_KEY = 'd0l1eq1r01qgsfe7j2h0d0l1eq1r01qgsfe7j2hg'; // Free public key
-  const usTickers = GLOBAL_WATCHLIST.us.slice(0, 30);
+  const allTickers = [...new Set([...GLOBAL_WATCHLIST.us, ...GLOBAL_WATCHLIST.etf, ...GLOBAL_WATCHLIST.crypto])];
+  const BATCH = 8;
 
-  // Finnhub quote endpoint — works directly, no proxy needed
-  async function finnhubQuote(ticker) {
-    try {
-      const r = await fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FINNHUB_KEY}`,
-        { signal: AbortSignal.timeout(5000) }
-      );
-      if (!r.ok) return null;
-      const d = await r.json();
-      if (!d || !d.c || d.c === 0) return null;
-      return {
-        ticker,
-        name: ticker,
-        price: d.c,           // current price
-        changePct: d.dp || 0, // day percent change
-        region: getRegion(ticker)
-      };
-    } catch(e) { return null; }
-  }
+  for (let i = 0; i < allTickers.length; i += BATCH) {
+    const batch = allTickers.slice(i, i + BATCH);
+    const results = await Promise.all(batch.map(async ticker => {
+      try {
+        const d = await yfFetch(ticker, '1mo', '1wk');
+        if (!d?.chart?.result) return null;
+        const res = d.chart.result[0];
+        const closes = (res.indicators.quote[0].close || []).filter(c => c != null);
+        if (closes.length < 2) return null;
+        const prev = closes[closes.length - 2];
+        const last = closes[closes.length - 1];
+        if (!prev || prev === 0) return null;
+        const changePct = ((last - prev) / prev) * 100;
+        const local = TICKER_DB.find(t => t.t === ticker);
+        const name = local ? local.n : (res.meta.longName || res.meta.shortName || ticker);
+        return { ticker, name, price: last, changePct, region: getRegion(ticker) };
+      } catch(e) { return null; }
+    }));
 
-  // Fetch US stocks via Finnhub in parallel batches of 10
-  const BATCH = 10;
-  for (let i = 0; i < usTickers.length; i += BATCH) {
-    const batch = usTickers.slice(i, i + BATCH);
-    const results = await Promise.all(batch.map(finnhubQuote));
     const valid = results.filter(Boolean);
-
     const merged = [...allTop10Data, ...valid];
     const seen = new Set();
     allTop10Data = merged.filter(s => {
@@ -1166,39 +1157,12 @@ async function loadTop10() {
     if (allTop10Data.length > 0) {
       filterTop10(currentRegion, null);
       document.getElementById('top10-updated').textContent =
-        `Loaded ${allTop10Data.length} stocks · ${new Date().toLocaleTimeString()}`;
+        `Loaded ${allTop10Data.length} of ${allTickers.length} · ${new Date().toLocaleTimeString()}`;
     }
-    await sleep(300); // Respect Finnhub rate limit
   }
 
-  // Also fetch ETFs via Finnhub
-  for (const ticker of GLOBAL_WATCHLIST.etf) {
-    const result = await finnhubQuote(ticker);
-    if (result) {
-      allTop10Data.push(result);
-      allTop10Data.sort((a, b) => b.changePct - a.changePct);
-    }
-    await sleep(100);
-  }
-
-  // Fallback to Yahoo proxy for crypto (Finnhub needs paid plan for crypto)
-  const cryptoResults = await Promise.all(
-    GLOBAL_WATCHLIST.crypto.map(ticker => fetchQuote(ticker).then(q =>
-      q ? { ticker, name: q.name || ticker, price: q.price, changePct: q.change, region: 'crypto' } : null
-    ).catch(() => null))
-  );
-  cryptoResults.filter(Boolean).forEach(r => {
-    if (!allTop10Data.find(s => s.ticker === r.ticker)) allTop10Data.push(r);
-  });
-
-  allTop10Data = allTop10Data
-    .filter(s => Math.abs(s.changePct) > 0)
-    .sort((a, b) => b.changePct - a.changePct);
-
-  const now = new Date();
-  const isWeekend = now.getDay() === 0 || now.getDay() === 6;
   document.getElementById('top10-updated').textContent =
-    `Updated ${now.toLocaleTimeString()}${isWeekend ? ' · Weekend — last trading day' : ''}`;
+    `Last week's performance · ${new Date().toLocaleTimeString()}`;
   filterTop10(currentRegion, null);
   loadMarketNews();
 }
