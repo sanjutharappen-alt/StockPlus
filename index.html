@@ -349,12 +349,13 @@
       </div>
 
       <div class="india-note">
-        ℹ️ <strong>Indian stocks (NSE/BSE)</strong> — search by name (e.g. "hdfc", "reliance", "tata") or use format <code>SYMBOL.BSE</code> / <code>SYMBOL.NSE</code> directly.
+        ℹ️ <strong>Indian stocks (NSE/BSE)</strong> — search by name (e.g. "hdfc", "reliance", "tata") or use format <code>SYMBOL.BSE</code> / <code>SYMBOL.NSE</code> directly.<br/>
+        🇮🇳 <strong>Indian Mutual Funds</strong> — type <code>AXIS-ARB</code>, <code>HDFC-ARB</code>, or <code>SBI-ARB</code> to add your arbitrage funds with live NAV from MFAPI.
       </div>
 
       <div class="add-bar" style="flex-wrap:wrap;">
         <div style="position:relative; flex:1; min-width:200px;">
-          <input id="fund-ticker-input" type="text" placeholder="Type fund name or ticker (e.g. vanguard or spy)…" maxlength="40" oninput="onFundSearch(this.value)" onkeydown="onFundKey(event)" autocomplete="off" style="width:100%;text-transform:uppercase;" />
+          <input id="fund-ticker-input" type="text" placeholder="Type fund name or ticker — or AXIS-ARB, HDFC-ARB, SBI-ARB…" maxlength="40" oninput="onFundSearch(this.value)" onkeydown="onFundKey(event)" autocomplete="off" style="width:100%;text-transform:uppercase;" />
           <div id="fund-ticker-dropdown" class="search-dropdown"></div>
         </div>
         <input id="fund-qty-input" type="number" placeholder="Units (optional)" min="1" style="width:130px;" />
@@ -364,7 +365,7 @@
 
       <div class="bulk-panel" id="fund-bulk-panel">
         <label>Bulk import funds — paste tickers below</label>
-        <textarea class="bulk-textarea" id="fund-bulk-input" placeholder="Lowercase or uppercase — both work!&#10;&#10;Examples:&#10;spy 10&#10;qqq 5&#10;vfinx 20&#10;hdfcbank.bse 50&#10;&#10;Units are optional (default 10)"></textarea>
+        <textarea class="bulk-textarea" id="fund-bulk-input" placeholder="Lowercase or uppercase — both work!&#10;&#10;Examples:&#10;spy 10&#10;qqq 5&#10;vfinx 20&#10;hdfcbank.bse 50&#10;&#10;Indian MF codes: AXIS-ARB 7416, HDFC-ARB 2049, SBI-ARB 6391&#10;&#10;Units are optional (default 10)"></textarea>
         <div class="bulk-actions">
           <span class="bulk-hint">Type (ETF/MF/Index) is detected automatically — just paste tickers</span>
           <button class="btn-sm" onclick="toggleFundBulk()">Cancel</button>
@@ -443,13 +444,12 @@
 /* ============================================================
    CONFIGURATION
    ============================================================ */
-// Yahoo Finance via allorigins CORS proxy — no API key needed, fast, no rate limit
 const YF_PROXY = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 
 /* ============================================================
    STATE
    ============================================================ */
-let portfolio = []; // [{ticker, name, qty, price, change, changePct, history:[]}]
+let portfolio = [];
 let portChart = null;
 
 /* ============================================================
@@ -471,10 +471,9 @@ window.onload = () => {
 };
 
 /* ============================================================
-   LOCAL TICKER LOOKUP TABLE — works offline, no API needed
+   LOCAL TICKER LOOKUP TABLE
    ============================================================ */
 const TICKER_DB = [
-  // US Mega Cap Tech
   {t:'AAPL',n:'Apple Inc.',c:'Technology'},
   {t:'MSFT',n:'Microsoft Corporation',c:'Technology'},
   {t:'NVDA',n:'Nvidia Corporation',c:'Semiconductors'},
@@ -485,7 +484,6 @@ const TICKER_DB = [
   {t:'TSLA',n:'Tesla Inc.',c:'Electric Vehicles'},
   {t:'AVGO',n:'Broadcom Inc.',c:'Semiconductors'},
   {t:'ORCL',n:'Oracle Corporation',c:'Technology'},
-  // US Tech
   {t:'AMD',n:'Advanced Micro Devices',c:'Semiconductors'},
   {t:'INTC',n:'Intel Corporation',c:'Semiconductors'},
   {t:'QCOM',n:'Qualcomm Inc.',c:'Semiconductors'},
@@ -526,7 +524,6 @@ const TICKER_DB = [
   {t:'TWLO',n:'Twilio Inc.',c:'Software'},
   {t:'ZM',n:'Zoom Video Communications',c:'Software'},
   {t:'DOCU',n:'DocuSign Inc.',c:'Software'},
-  // US Finance
   {t:'JPM',n:'JPMorgan Chase',c:'Banking'},
   {t:'BAC',n:'Bank of America',c:'Banking'},
   {t:'WFC',n:'Wells Fargo',c:'Banking'},
@@ -543,7 +540,6 @@ const TICKER_DB = [
   {t:'AXP',n:'American Express',c:'Finance'},
   {t:'BRK-B',n:'Berkshire Hathaway B',c:'Conglomerate'},
   {t:'BRK-A',n:'Berkshire Hathaway A',c:'Conglomerate'},
-  // US Healthcare
   {t:'JNJ',n:'Johnson & Johnson',c:'Healthcare'},
   {t:'LLY',n:'Eli Lilly and Company',c:'Pharmaceuticals'},
   {t:'UNH',n:'UnitedHealth Group',c:'Healthcare'},
@@ -559,8 +555,6 @@ const TICKER_DB = [
   {t:'BNTX',n:'BioNTech SE',c:'Biotechnology'},
   {t:'REGN',n:'Regeneron Pharmaceuticals',c:'Biotechnology'},
   {t:'VRTX',n:'Vertex Pharmaceuticals',c:'Biotechnology'},
-  // US Consumer
-  {t:'AMZN',n:'Amazon.com Inc.',c:'Retail'},
   {t:'WMT',n:'Walmart Inc.',c:'Retail'},
   {t:'COST',n:'Costco Wholesale',c:'Retail'},
   {t:'TGT',n:'Target Corporation',c:'Retail'},
@@ -578,7 +572,6 @@ const TICKER_DB = [
   {t:'MDLZ',n:'Mondelez International',c:'Food'},
   {t:'GIS',n:'General Mills',c:'Food'},
   {t:'K',n:'Kellanova (Kellogg)',c:'Food'},
-  // US Energy
   {t:'XOM',n:'Exxon Mobil',c:'Energy'},
   {t:'CVX',n:'Chevron Corporation',c:'Energy'},
   {t:'COP',n:'ConocoPhillips',c:'Energy'},
@@ -587,7 +580,6 @@ const TICKER_DB = [
   {t:'PSX',n:'Phillips 66',c:'Energy'},
   {t:'NEE',n:'NextEra Energy',c:'Utilities'},
   {t:'DUK',n:'Duke Energy',c:'Utilities'},
-  // US Industrial
   {t:'GE',n:'GE Aerospace',c:'Aerospace'},
   {t:'BA',n:'Boeing Company',c:'Aerospace'},
   {t:'LMT',n:'Lockheed Martin',c:'Defense'},
@@ -603,14 +595,12 @@ const TICKER_DB = [
   {t:'GM',n:'General Motors',c:'Automotive'},
   {t:'RIVN',n:'Rivian Automotive',c:'Electric Vehicles'},
   {t:'LCID',n:'Lucid Group',c:'Electric Vehicles'},
-  // US Telecom & Media
   {t:'T',n:'AT&T Inc.',c:'Telecom'},
   {t:'VZ',n:'Verizon Communications',c:'Telecom'},
   {t:'TMUS',n:'T-Mobile US',c:'Telecom'},
   {t:'CMCSA',n:'Comcast Corporation',c:'Media'},
   {t:'WBD',n:'Warner Bros Discovery',c:'Media'},
   {t:'PARA',n:'Paramount Global',c:'Media'},
-  // Popular ETFs
   {t:'SPY',n:'SPDR S&P 500 ETF Trust',c:'ETF'},
   {t:'VOO',n:'Vanguard S&P 500 ETF',c:'ETF'},
   {t:'IVV',n:'iShares Core S&P 500 ETF',c:'ETF'},
@@ -633,14 +623,12 @@ const TICKER_DB = [
   {t:'EEM',n:'iShares MSCI Emerging Markets ETF',c:'ETF'},
   {t:'VEA',n:'Vanguard FTSE Developed Markets ETF',c:'ETF'},
   {t:'IEMG',n:'iShares Core MSCI Emerging Markets',c:'ETF'},
-  // Index Funds / Mutual Funds
   {t:'VFINX',n:'Vanguard 500 Index Fund',c:'Mutual Fund'},
   {t:'VTSAX',n:'Vanguard Total Stock Market Index',c:'Index Fund'},
   {t:'FXAIX',n:'Fidelity 500 Index Fund',c:'Index Fund'},
   {t:'SWPPX',n:'Schwab S&P 500 Index Fund',c:'Index Fund'},
   {t:'VBTLX',n:'Vanguard Total Bond Market Index',c:'Index Fund'},
   {t:'VTIAX',n:'Vanguard Total International Stock',c:'Index Fund'},
-  // Crypto
   {t:'BTC-USD',n:'Bitcoin USD',c:'Crypto'},
   {t:'ETH-USD',n:'Ethereum USD',c:'Crypto'},
   {t:'BNB-USD',n:'Binance Coin USD',c:'Crypto'},
@@ -649,7 +637,6 @@ const TICKER_DB = [
   {t:'ADA-USD',n:'Cardano USD',c:'Crypto'},
   {t:'DOGE-USD',n:'Dogecoin USD',c:'Crypto'},
   {t:'AVAX-USD',n:'Avalanche USD',c:'Crypto'},
-  // Indian Stocks (BSE)
   {t:'RELIANCE.BSE',n:'Reliance Industries',c:'India'},
   {t:'TCS.BSE',n:'Tata Consultancy Services',c:'India'},
   {t:'HDFCBANK.BSE',n:'HDFC Bank',c:'India'},
@@ -698,7 +685,7 @@ function localSearch(query) {
 }
 
 /* ============================================================
-   YAHOO FINANCE HELPERS  (all requests fire in parallel)
+   YAHOO FINANCE HELPERS
    ============================================================ */
 const YF_HOSTS = [
   'https://query1.finance.yahoo.com',
@@ -714,7 +701,6 @@ const PROXIES = [
 ];
 
 async function yfFetch(ticker, range, interval) {
-  // Try each YF host with each proxy — first success wins
   for (const host of YF_HOSTS) {
     const url = `${host}/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=${interval}&includePrePost=false`;
     for (const proxy of PROXIES) {
@@ -775,9 +761,7 @@ async function fetchWeekly(ticker) {
   });
 }
 
-/* Search by company name — uses Yahoo Finance autocomplete directly */
 async function searchTicker(query) {
-  // This endpoint works without CORS issues from https:// hosted sites
   try {
     const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0&enableFuzzyQuery=true&corsDomain=finance.yahoo.com`;
     const r = await fetch(url, {
@@ -800,7 +784,6 @@ async function searchTicker(query) {
     }
   } catch(e) {}
 
-  // Proxy fallbacks
   const searchUrl = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0&enableFuzzyQuery=true`;
   const tryProxies = [
     `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`,
@@ -826,7 +809,6 @@ async function searchTicker(query) {
     } catch(e) { continue; }
   }
 
-  // Last resort — only for inputs that are clearly ticker-like (all letters, 2-5 chars, no spaces)
   const clean = query.trim().toUpperCase();
   if (/^[A-Z]{2,5}$/.test(clean) && !['APP','THE','AND','FOR','INC','LTD','COM'].includes(clean)) {
     return [{ ticker: clean, name: 'Search unavailable — added as ticker', type: 'EQUITY', exchange: 'Direct' }];
@@ -837,15 +819,26 @@ async function searchTicker(query) {
 async function runSearch(query, dropdownId, inputId, isFund) {
   const dd = document.getElementById(dropdownId);
 
-  // Step 1: Show local results INSTANTLY
+  // Show Indian MF suggestions if input matches
+  if (isFund) {
+    const q = query.toUpperCase();
+    const mfSuggestions = Object.entries(INDIAN_MF_CODES)
+      .filter(([key, val]) => key.includes(q) || val.name.toUpperCase().includes(q) || q.includes('ARB') || q.includes('AXIS') || q.includes('HDFC') || q.includes('SBI'))
+      .map(([key, val]) => ({ ticker: key, name: val.name, type: 'Indian MF', exchange: 'MFAPI · Live NAV' }));
+    if (mfSuggestions.length && (q.includes('ARB') || q.includes('AXIS') || q.includes('HDFC') || q.includes('SBI') || q.includes('MF'))) {
+      dd.innerHTML = renderDropdownItems(mfSuggestions, dropdownId, inputId, isFund);
+      dd.classList.add('open');
+      return;
+    }
+  }
+
   const localResults = localSearch(query);
   if (localResults.length) {
     dd.innerHTML = renderDropdownItems(localResults, dropdownId, inputId, isFund);
     dd.classList.add('open');
-    return; // Local results are good — no need to call Yahoo
+    return;
   }
 
-  // Step 2: If no local match, try Yahoo in background
   const clean = query.trim().toUpperCase();
   const looksLikeTicker = /^[A-Z0-9.]{1,10}$/.test(clean);
   if (looksLikeTicker) {
@@ -869,7 +862,7 @@ async function runSearch(query, dropdownId, inputId, isFund) {
 }
 
 function renderDropdownItems(items, dropdownId, inputId, isFund) {
-  const typeLabel = { EQUITY: 'Stock', ETF: 'ETF', MUTUALFUND: 'Fund', INDEX: 'Index' };
+  const typeLabel = { EQUITY: 'Stock', ETF: 'ETF', MUTUALFUND: 'Fund', INDEX: 'Index', 'Indian MF': 'Indian MF' };
   return items.map((r) =>
     `<div class="search-item" onmousedown="event.preventDefault();selectResult('${r.ticker}','${(r.name||'').replace(/'/g,"\\'")}','${dropdownId}','${inputId}',${isFund})">
       <span class="search-item-ticker">${r.ticker}</span>
@@ -884,7 +877,7 @@ function renderDropdownItems(items, dropdownId, inputId, isFund) {
    ============================================================ */
 async function addStock() {
   const raw = document.getElementById('ticker-input').value.trim();
-  const ticker = raw.toUpperCase().split(' ')[0]; // strip any name after space
+  const ticker = raw.toUpperCase().split(' ')[0];
   const qty = parseInt(document.getElementById('qty-input').value) || 1;
   if (!ticker) { showToast('Search for a stock first', true); return; }
   if (portfolio.find(s => s.ticker === ticker)) { showToast(ticker + ' is already in your portfolio', true); return; }
@@ -917,12 +910,10 @@ async function loadHistory(stock) {
 async function refreshPortfolio() {
   if (portfolio.length === 0) return;
   showToast('Updating prices…');
-  // Fetch all quotes in parallel — no rate limit with Yahoo Finance
   const quotes = await Promise.all(portfolio.map(s => fetchQuote(s.ticker)));
   quotes.forEach((q, i) => {
     if (q) { portfolio[i].price = q.price; portfolio[i].changePct = q.change; portfolio[i].change = q.change; if (q.name && q.name !== portfolio[i].ticker) portfolio[i].name = q.name; }
   });
-  // Fetch all histories in parallel too
   const hists = await Promise.all(portfolio.map(s => fetchDaily(s.ticker)));
   hists.forEach((h, i) => { if (h) portfolio[i].history = h.map(d => d.close); });
   savePortfolio();
@@ -1018,13 +1009,11 @@ function renderPortChart(stocks) {
     labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
   }
 
-  // Build combined portfolio value per day using available history
   const data = [];
   for (let i = 0; i <= days; i++) {
     let val = 0;
     stocks.forEach(s => {
       if (s.history && s.history.length > 0) {
-        const idx = Math.min(i, s.history.length - 1);
         const histIdx = Math.max(0, s.history.length - 1 - (days - i));
         val += (s.history[histIdx] || s.price) * s.qty;
       }
@@ -1108,7 +1097,6 @@ function weekCardHTML(s, weekly) {
 /* ============================================================
    TOP 10 GLOBAL GAINERS + NEWS
    ============================================================ */
-// Broad global watchlist: US stocks, Indian stocks, ETFs, crypto
 const GLOBAL_WATCHLIST = {
   us:     ['AAPL','MSFT','NVDA','META','GOOGL','AMZN','TSLA','AMD','PLTR','CRWD','SNOW','PANW','ARM','MRVL','SMCI','JPM','V','MA','UNH','XOM','CVX','NFLX','ORCL','ADBE','CRM','INTC','QCOM','MU','AVGO','LRCX'],
   in:     ['RELIANCE.BSE','TCS.BSE','HDFCBANK.BSE','INFY.BSE','ICICIBANK.BSE','HINDUNILVR.BSE','BAJFINANCE.BSE','SBIN.BSE','BHARTIARTL.BSE','WIPRO.BSE','ADANIENT.BSE','TATAMOTORS.BSE','TATASTEEL.BSE','MARUTI.BSE','SUNPHARMA.BSE'],
@@ -1167,15 +1155,6 @@ async function loadTop10() {
   loadMarketNews();
 }
 
-
-// Lightweight daily fetch — just last 5 days close prices
-async function fetchDailyShort(ticker) {
-  const d = await yfFetch(ticker, '5d', '1d');
-  if (!d || !d.chart || d.chart.error || !d.chart.result) return null;
-  const closes = d.chart.result[0].indicators.quote[0].close || [];
-  return closes.filter(c => c !== null && c !== undefined);
-}
-
 function getRegion(ticker) {
   if (ticker.includes('.BSE') || ticker.includes('.NSE')) return 'in';
   if (ticker.includes('-USD')) return 'crypto';
@@ -1191,7 +1170,6 @@ function filterTop10(region, btnEl) {
   }
 
   let filtered = region === 'all' ? allTop10Data : allTop10Data.filter(s => s.region === region);
-  // Remove any that still have exactly 0 change — no data available
   filtered = filtered.filter(s => Math.abs(s.changePct) > 0.001);
   const top10 = filtered.slice(0, 10);
   const maxChange = top10.length > 0 ? Math.max(...top10.map(s => Math.abs(s.changePct))) : 1;
@@ -1221,7 +1199,6 @@ function filterTop10(region, btnEl) {
 }
 
 async function loadMarketNews() {
-  // Pull Yahoo Finance RSS news feed via proxy
   const rssUrl = 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC,^DJI,^IXIC&region=US&lang=en-US';
   let newsHtml = '';
 
@@ -1276,17 +1253,13 @@ function toggleBulk() {
 }
 
 function parseBulkInput(raw) {
-  // Normalize: replace commas with spaces, split on whitespace/newlines
   const tokens = raw.replace(/,/g, ' ').split(/\s+/).map(t => t.trim()).filter(Boolean);
   const entries = [];
   let i = 0;
   while (i < tokens.length) {
     const t = tokens[i].toUpperCase();
-    // Skip empty
     if (!t) { i++; continue; }
-    // Check if it looks like a ticker (letters only, 1-8 chars)
     if (/^[A-Z.]{1,8}$/.test(t)) {
-      // Peek ahead for a number
       const next = tokens[i + 1];
       const qty = next && /^\d+$/.test(next) ? parseInt(next) : 10;
       if (next && /^\d+$/.test(next)) i++;
@@ -1331,7 +1304,6 @@ async function runBulkImport() {
     added++;
   }
 
-  // Load histories for newly added — all in parallel
   prog.innerHTML = `Loading price history…`;
   await Promise.all(portfolio.filter(s => s.history.length === 0).map(s => loadHistory(s)));
 
@@ -1345,13 +1317,47 @@ async function runBulkImport() {
 }
 
 /* ============================================================
+   INDIAN MUTUAL FUNDS — MFAPI (no API key needed)
+   ============================================================ */
+const INDIAN_MF_CODES = {
+  'AXIS-ARB': { code: '120503', name: 'Axis Arbitrage Fund — Regular Growth', currency: 'INR' },
+  'HDFC-ARB': { code: '119062', name: 'HDFC Arbitrage Fund Wholesale Growth', currency: 'INR' },
+  'SBI-ARB':  { code: '125497', name: 'SBI Arbitrage Opportunities Fund Growth', currency: 'INR' },
+};
+
+async function fetchIndianMFNav(pseudoTicker) {
+  const mf = INDIAN_MF_CODES[pseudoTicker];
+  if (!mf) return null;
+  try {
+    const r = await fetch(`https://api.mfapi.in/mf/${mf.code}`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const nav = parseFloat(d.data[0].nav);
+    const prevNav = parseFloat(d.data[1]?.nav || nav);
+    const changePct = prevNav ? ((nav - prevNav) / prevNav) * 100 : 0;
+    return { price: nav, change: changePct, name: mf.name, quoteType: 'MUTUALFUND', currency: 'INR' };
+  } catch(e) { return null; }
+}
+
+async function fetchIndianMFHistory(pseudoTicker) {
+  const mf = INDIAN_MF_CODES[pseudoTicker];
+  if (!mf) return null;
+  try {
+    const r = await fetch(`https://api.mfapi.in/mf/${mf.code}`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d.data.slice(0, 30).reverse().map(e => parseFloat(e.nav));
+  } catch(e) { return null; }
+}
+
+/* ============================================================
    FUNDS
    ============================================================ */
-let funds = []; // [{ticker, type, name, qty, price, changePct, history}]
+let funds = [];
 let fundChart = null;
 
-const FUND_TYPE_LABELS = { ETF: 'ETF', MF: 'MF', INF: 'India', IDX: 'Index' };
-const FUND_TYPE_CSS    = { ETF: 'ftype-etf', MF: 'ftype-mf', INF: 'ftype-ind', IDX: 'ftype-inf' };
+const FUND_TYPE_LABELS = { ETF: 'ETF', MF: 'MF', INF: 'India MF', IDX: 'Index' };
+const FUND_TYPE_CSS    = { ETF: 'ftype-etf', MF: 'ftype-mf', INF: 'ftype-inf', IDX: 'ftype-ind' };
 
 function loadFundsFromStorage() {
   const saved = localStorage.getItem('sv_funds');
@@ -1370,13 +1376,18 @@ async function addFund() {
   const btn = document.getElementById('fund-add-btn');
   btn.disabled = true; btn.textContent = 'Fetching…';
 
-  const quote = await fetchQuote(ticker);
+  // Use MFAPI for Indian MF tickers, Yahoo for everything else
+  const quote = INDIAN_MF_CODES[ticker]
+    ? await fetchIndianMFNav(ticker)
+    : await fetchQuote(ticker);
+
   if (!quote) {
     showToast('Could not find ' + ticker + '. Check ticker or internet.', true);
     btn.disabled = false; btn.textContent = '+ Add fund'; return;
   }
-  const type = detectFundType(quote.quoteType, ticker);
-  funds.push({ ticker, type, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [] });
+  const type = INDIAN_MF_CODES[ticker] ? 'INF' : detectFundType(quote.quoteType, ticker);
+  const currency = quote.currency || 'USD';
+  funds.push({ ticker, type, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [], currency });
   await loadFundHistory(funds[funds.length - 1]);
   saveFunds();
   renderFunds();
@@ -1387,17 +1398,35 @@ async function addFund() {
 }
 
 async function loadFundHistory(fund) {
-  const hist = await fetchDaily(fund.ticker);
-  if (hist) fund.history = hist.map(d => d.close);
+  // Use MFAPI history for Indian MFs, Yahoo for everything else
+  const hist = INDIAN_MF_CODES[fund.ticker]
+    ? await fetchIndianMFHistory(fund.ticker)
+    : await fetchDaily(fund.ticker).then(d => d ? d.map(x => x.close) : null);
+  if (hist) fund.history = hist;
 }
 
 async function refreshFunds() {
   if (funds.length === 0) return;
   showToast('Updating fund prices…');
-  const quotes = await Promise.all(funds.map(f => fetchQuote(f.ticker)));
-  quotes.forEach((q, i) => { if (q) { funds[i].price = q.price; funds[i].changePct = q.change; if (q.name && q.name !== funds[i].ticker) funds[i].name = q.name; } });
-  const hists = await Promise.all(funds.map(f => fetchDaily(f.ticker)));
-  hists.forEach((h, i) => { if (h) funds[i].history = h.map(d => d.close); });
+  // Fetch quotes — Indian MFs from MFAPI, others from Yahoo
+  const quotes = await Promise.all(funds.map(f =>
+    INDIAN_MF_CODES[f.ticker] ? fetchIndianMFNav(f.ticker) : fetchQuote(f.ticker)
+  ));
+  quotes.forEach((q, i) => {
+    if (q) {
+      funds[i].price = q.price;
+      funds[i].changePct = q.change;
+      if (q.name && q.name !== funds[i].ticker) funds[i].name = q.name;
+      if (q.currency) funds[i].currency = q.currency;
+    }
+  });
+  // Fetch histories
+  const hists = await Promise.all(funds.map(f =>
+    INDIAN_MF_CODES[f.ticker]
+      ? fetchIndianMFHistory(f.ticker)
+      : fetchDaily(f.ticker).then(d => d ? d.map(x => x.close) : null)
+  ));
+  hists.forEach((h, i) => { if (h) funds[i].history = h; });
   saveFunds();
   renderFunds();
   document.getElementById('fund-last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -1411,10 +1440,9 @@ function removeFund(ticker) {
 }
 
 function renderFunds() {
-  // Metrics
   const total = funds.reduce((s, f) => s + f.price * f.qty, 0);
   const etfCount = funds.filter(f => f.type === 'ETF').length;
-  const mfCount  = funds.filter(f => f.type === 'MF').length;
+  const mfCount  = funds.filter(f => f.type === 'MF' || f.type === 'INF').length;
   const indCount = funds.filter(f => f.type === 'IDX').length;
   const best = funds.length > 0 ? funds.reduce((a, b) => a.changePct > b.changePct ? a : b) : null;
   document.getElementById('fm-value').textContent = funds.length === 0 ? '—' : '$' + Math.round(total).toLocaleString();
@@ -1430,17 +1458,22 @@ function renderFunds() {
   }
 
   document.getElementById('funds-list').innerHTML = funds.map(f => {
-    const val = (f.price * f.qty).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+    // Show ₹ for Indian MFs, $ for everything else
+    const isINR = f.currency === 'INR';
+    const val = isINR
+      ? '₹' + (f.price * f.qty).toLocaleString('en-IN', { maximumFractionDigits: 2 })
+      : (f.price * f.qty).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+    const priceStr = isINR ? '₹' + f.price.toFixed(4) : '$' + f.price.toFixed(2);
     const cls = f.changePct >= 0 ? 'up' : 'down';
-    const chgStr = (f.changePct >= 0 ? '+' : '') + f.changePct.toFixed(2) + '%';
-    const spId = 'fsp_' + f.ticker.replace('.','_');
+    const chgStr = (f.changePct >= 0 ? '+' : '') + f.changePct.toFixed(4) + '%';
+    const spId = 'fsp_' + f.ticker.replace(/[^a-zA-Z0-9]/g, '_');
     const typeCss = FUND_TYPE_CSS[f.type] || 'ftype-etf';
     const typeLabel = FUND_TYPE_LABELS[f.type] || f.type;
     return `<div class="fund-row">
       <span class="ticker">${f.ticker}</span>
       <span class="ftype ${typeCss}">${typeLabel}</span>
       <span class="sname">${f.name}</span>
-      <span class="price">$${f.price.toFixed(2)}</span>
+      <span class="price">${priceStr}</span>
       <span class="chg ${cls}">${chgStr}</span>
       <span class="price">${val}</span>
       <canvas class="sparkline-cell" id="${spId}" width="80" height="36" role="img" aria-label="${f.ticker} 7-day chart"></canvas>
@@ -1449,7 +1482,7 @@ function renderFunds() {
   }).join('');
 
   funds.forEach(f => {
-    const canvas = document.getElementById('fsp_' + f.ticker.replace('.','_'));
+    const canvas = document.getElementById('fsp_' + f.ticker.replace(/[^a-zA-Z0-9]/g, '_'));
     if (canvas && f.history && f.history.length > 1) drawSparkline(canvas, f.history.slice(-7), f.changePct >= 0);
   });
 
@@ -1491,10 +1524,10 @@ function renderFundChart(fundList) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { label: c => ' $' + Math.round(c.raw).toLocaleString() } } },
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { label: c => ' ' + Math.round(c.raw).toLocaleString() } } },
       scales: {
         x: { ticks: { autoSkip: true, maxTicksLimit: 8, color: '#7a8099', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { callback: v => '$' + Math.round(v / 1000) + 'k', color: '#7a8099', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        y: { ticks: { callback: v => Math.round(v / 1000) + 'k', color: '#7a8099', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
       }
     }
   });
@@ -1517,15 +1550,13 @@ function detectFundType(quoteType, ticker) {
 }
 
 function parseFundBulk(raw) {
-  // TICKER and optional UNITS only — type is auto-detected from Yahoo
   return raw.split(/[\n,]+/).map(l => l.trim()).filter(Boolean).map(line => {
     const parts = line.split(/\s+/);
     const ticker = parts[0].toUpperCase();
-    if (!ticker || !/^[A-Z0-9.]{1,12}$/.test(ticker)) return null;
+    if (!ticker || !/^[A-Z0-9.\-]{1,12}$/.test(ticker)) return null;
     let qty = 10;
     for (let i = 1; i < parts.length; i++) {
       if (/^\d+$/.test(parts[i])) qty = parseInt(parts[i]);
-      // Old-style type codes (ETF/MF/INF/IDX) are silently ignored — auto-detected now
     }
     return { ticker, qty };
   }).filter(Boolean);
@@ -1546,14 +1577,20 @@ async function runFundBulkImport() {
     const { ticker, qty } = entries[i];
     prog.innerHTML = `Fetching <span>${ticker}</span> (${i + 1} of ${entries.length})…`;
     if (funds.find(f => f.ticker === ticker)) { skipped++; continue; }
-    const quote = await fetchQuote(ticker);
+
+    // Use MFAPI for Indian MF tickers
+    const quote = INDIAN_MF_CODES[ticker]
+      ? await fetchIndianMFNav(ticker)
+      : await fetchQuote(ticker);
+
     if (!quote) { failed++; continue; }
-    const type = detectFundType(quote.quoteType, ticker);
-    funds.push({ ticker, type, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [] });
+    const type = INDIAN_MF_CODES[ticker] ? 'INF' : detectFundType(quote.quoteType, ticker);
+    const currency = quote.currency || 'USD';
+    funds.push({ ticker, type, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [], currency });
     added++;
   }
   prog.innerHTML = 'Loading history…';
-  await Promise.all(funds.filter(f => f.history.length === 0).map(f => loadFundHistory(f)));
+  await Promise.all(funds.filter(f => !f.history || f.history.length === 0).map(f => loadFundHistory(f)));
   saveFunds();
   renderFunds();
   prog.innerHTML = `<span>✓ Done:</span> ${added} added · ${skipped} skipped · ${failed} not found`;
@@ -1595,7 +1632,6 @@ function selectResult(ticker, name, dropdownId, inputId, isFund) {
   closeDropdown(dropdownId);
   if (isFund) selectedFundTicker = ticker;
   else selectedSearchTicker = ticker;
-  // Auto-add immediately when selected from dropdown
   setTimeout(() => { isFund ? addFund() : addStock(); }, 100);
 }
 
@@ -1613,7 +1649,6 @@ function onFundKey(e) {
   if (e.key === 'Enter') { closeDropdown('fund-ticker-dropdown'); addFund(); }
 }
 
-// Use mousedown instead of click so dropdown item registers before blur closes it
 document.addEventListener('mousedown', e => {
   const inTickerDd = e.target.closest('#ticker-dropdown');
   const inTickerIn = e.target.closest('#ticker-input');
@@ -1662,7 +1697,7 @@ function importData(event) {
     }
   };
   reader.readAsText(file);
-  event.target.value = ''; // reset so same file can be re-imported
+  event.target.value = '';
 }
 
 /* ============================================================
