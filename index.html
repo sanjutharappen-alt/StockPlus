@@ -225,7 +225,17 @@
   .search-item-exch { font-size: 11px; color: var(--muted); background: var(--bg); padding: 2px 6px; border-radius: 4px; }
   .search-loading { padding: 12px 14px; font-size: 12px; color: var(--muted); text-align: center; }
 
-  /* Fund type badges */
+  /* India MF badge */
+  .ftype-indiamf { background: rgba(255,153,0,0.15); color: #ff9900; }
+  /* MF fund card */
+  .mf-card { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px; }
+  .mf-card-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:14px; }
+  .mf-card-ticker { font-family:var(--mono);font-size:15px;font-weight:500;color:var(--accent); }
+  .mf-card-row { display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px; }
+  .mf-card-row:last-child { border-bottom:none; }
+  .mf-card-label { color:var(--muted);font-size:12px; }
+  .mf-card-val { font-family:var(--mono);font-size:12px; }
+  .mf-nav-date { font-size:11px;color:var(--muted);margin-top:10px;text-align:right; }
   .ftype { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.04em; white-space: nowrap; }
   .ftype-etf  { background: rgba(79,142,247,0.15); color: #4f8ef7; }
   .ftype-mf   { background: rgba(168,130,255,0.15); color: #a882ff; }
@@ -279,16 +289,23 @@
 
   <div class="main">
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('portfolio', this)">Portfolio</button>
-      <button class="tab" onclick="switchTab('funds', this)">Funds</button>
-      <button class="tab" onclick="switchTab('weekly', this)">Weekly report</button>
-      <button class="tab" onclick="switchTab('top10', this)">Top 10 this week</button>
+      <button class="tab active" onclick="switchTab('us', this)">🇺🇸 US Stocks</button>
+      <button class="tab" onclick="switchTab('india', this)">🇮🇳 Indian Stocks</button>
+      <button class="tab" onclick="switchTab('funds', this)">📦 Funds</button>
+      <button class="tab" onclick="switchTab('mf', this)">🇮🇳 My Funds</button>
+      <button class="tab" onclick="switchTab('weekly', this)">📊 Weekly report</button>
+      <button class="tab" onclick="switchTab('top10', this)">🏆 Top 10 this week</button>
     </div>
 
-    <!-- Portfolio Panel -->
-    <div id="panel-portfolio" class="panel active">
+
+    <!-- US Stocks Panel -->
+    <div id="panel-us" class="panel active">
       <div class="metric-row" id="port-metrics">
-        <div class="metric-card"><div class="metric-label">Total value</div><div class="metric-value" id="m-value">—</div></div>
+        <div class="metric-card">
+          <div class="metric-label">Total value (USD)</div>
+          <div class="metric-value" id="m-value">—</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;font-family:var(--mono);" id="m-value-inr">—</div>
+        </div>
         <div class="metric-card"><div class="metric-label">Holdings</div><div class="metric-value" id="m-count">—</div></div>
         <div class="metric-card"><div class="metric-label">Today's gainers</div><div class="metric-value up" id="m-gainers">—</div></div>
         <div class="metric-card"><div class="metric-label">Today's losers</div><div class="metric-value down" id="m-losers">—</div></div>
@@ -297,7 +314,7 @@
 
       <div class="add-bar" style="flex-wrap:wrap;">
         <div style="position:relative; flex:1; min-width:200px;">
-          <input id="ticker-input" type="text" placeholder="Type company name or ticker (e.g. apple or aapl)…" maxlength="40" style="width:100%;text-transform:uppercase;" oninput="onTickerSearch(this.value)" onkeydown="onTickerKey(event)" autocomplete="off" />
+          <input id="ticker-input" type="text" placeholder="Search US stock (e.g. apple or aapl)…" maxlength="40" style="width:100%;text-transform:uppercase;" oninput="onTickerSearch(this.value)" onkeydown="onTickerKey(event)" autocomplete="off" />
           <div id="ticker-dropdown" class="search-dropdown"></div>
         </div>
         <input id="qty-input" type="number" placeholder="Shares" min="1" style="width:100px;" />
@@ -326,17 +343,71 @@
           <span>Ticker</span><span>Name</span><span>Price</span><span>Change</span><span>Value</span><span>7-day</span><span></span>
         </div>
         <div id="holdings-list">
-          <div class="empty">Add your first stock above to get started.</div>
+          <div class="empty">Add your first US stock above to get started.</div>
         </div>
       </div>
 
       <div class="chart-card">
-        <div class="chart-title">Portfolio value — 30 day trend (simulated from live prices)</div>
+        <div class="chart-title">Portfolio value — 30 day trend</div>
         <div class="chart-wrap">
           <canvas id="portChart" role="img" aria-label="Portfolio value over 30 days">Portfolio 30-day value trend.</canvas>
         </div>
       </div>
     </div>
+
+    <!-- Indian Stocks Panel -->
+    <div id="panel-india" class="panel">
+      <div class="metric-row">
+        <div class="metric-card"><div class="metric-label">Total value</div><div class="metric-value" id="in-value">—</div></div>
+        <div class="metric-card"><div class="metric-label">Holdings</div><div class="metric-value" id="in-count">—</div></div>
+        <div class="metric-card"><div class="metric-label">Today's gainers</div><div class="metric-value up" id="in-gainers">—</div></div>
+        <div class="metric-card"><div class="metric-label">Today's losers</div><div class="metric-value down" id="in-losers">—</div></div>
+        <div class="metric-card"><div class="metric-label">Best performer</div><div class="metric-value up" id="in-best">—</div></div>
+      </div>
+
+      <div class="add-bar" style="flex-wrap:wrap;">
+        <div style="position:relative; flex:1; min-width:200px;">
+          <input id="in-ticker-input" type="text" placeholder="Search Indian stock (e.g. reliance or RELIANCE.NS)…" maxlength="40" style="width:100%;text-transform:uppercase;" oninput="onIndianSearch(this.value)" onkeydown="onIndianKey(event)" autocomplete="off" />
+          <div id="in-ticker-dropdown" class="search-dropdown"></div>
+        </div>
+        <input id="in-qty-input" type="number" placeholder="Shares" min="1" style="width:100px;" />
+        <button class="btn-add" id="in-add-btn" onclick="addIndianStock()">+ Add stock</button>
+        <button class="bulk-toggle" onclick="toggleIndianBulk()">⊞ Bulk import</button>
+      </div>
+
+      <div class="bulk-panel" id="in-bulk-panel">
+        <label>Bulk import Indian stocks</label>
+        <textarea class="bulk-textarea" id="in-bulk-input" placeholder="Use .NS suffix for NSE stocks&#10;&#10;Examples:&#10;RELIANCE.NS 10&#10;TCS.NS 8&#10;HDFCBANK.NS 5&#10;INFY.NS 12"></textarea>
+        <div class="bulk-actions">
+          <span class="bulk-hint">Use SYMBOL.NS format for NSE stocks</span>
+          <button class="btn-sm" onclick="toggleIndianBulk()">Cancel</button>
+          <button class="btn-add" id="in-bulk-btn" onclick="runIndianBulkImport()">Import all →</button>
+        </div>
+        <div class="bulk-progress" id="in-bulk-progress"></div>
+      </div>
+
+      <div class="refresh-row">
+        <span class="last-updated" id="in-last-updated">Not yet refreshed</span>
+        <button class="btn-sm" onclick="refreshIndian()">↻ Update prices</button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-head">
+          <span>Ticker</span><span>Name</span><span>Price</span><span>Change</span><span>Value</span><span>7-day</span><span></span>
+        </div>
+        <div id="indian-list">
+          <div class="empty">Add your first Indian stock above to get started.</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Indian portfolio value — 30 day trend</div>
+        <div class="chart-wrap">
+          <canvas id="indianChart" role="img" aria-label="Indian portfolio value over 30 days">Indian portfolio 30-day value trend.</canvas>
+        </div>
+      </div>
+    </div>
+
 
     <!-- Funds Panel -->
     <div id="panel-funds" class="panel">
@@ -349,13 +420,12 @@
       </div>
 
       <div class="india-note">
-        ℹ️ <strong>Indian stocks (NSE/BSE)</strong> — search by name (e.g. "hdfc", "reliance", "tata") or use format <code>SYMBOL.BSE</code> / <code>SYMBOL.NSE</code> directly.<br/>
-        🇮🇳 <strong>Indian Mutual Funds</strong> — type <code>AXIS-ARB</code>, <code>HDFC-ARB</code>, or <code>SBI-ARB</code> to add your arbitrage funds with live NAV from MFAPI.
+        ℹ️ <strong>Indian stocks (NSE/BSE)</strong> — search by name (e.g. "hdfc", "reliance", "tata") or use format <code>SYMBOL.BSE</code> / <code>SYMBOL.NSE</code> directly.
       </div>
 
       <div class="add-bar" style="flex-wrap:wrap;">
         <div style="position:relative; flex:1; min-width:200px;">
-          <input id="fund-ticker-input" type="text" placeholder="Type fund name or ticker — or AXIS-ARB, HDFC-ARB, SBI-ARB…" maxlength="40" oninput="onFundSearch(this.value)" onkeydown="onFundKey(event)" autocomplete="off" style="width:100%;text-transform:uppercase;" />
+          <input id="fund-ticker-input" type="text" placeholder="Type fund name or ticker (e.g. vanguard or spy)…" maxlength="40" oninput="onFundSearch(this.value)" onkeydown="onFundKey(event)" autocomplete="off" style="width:100%;text-transform:uppercase;" />
           <div id="fund-ticker-dropdown" class="search-dropdown"></div>
         </div>
         <input id="fund-qty-input" type="number" placeholder="Units (optional)" min="1" style="width:130px;" />
@@ -365,7 +435,7 @@
 
       <div class="bulk-panel" id="fund-bulk-panel">
         <label>Bulk import funds — paste tickers below</label>
-        <textarea class="bulk-textarea" id="fund-bulk-input" placeholder="Lowercase or uppercase — both work!&#10;&#10;Examples:&#10;spy 10&#10;qqq 5&#10;vfinx 20&#10;hdfcbank.bse 50&#10;&#10;Indian MF codes: AXIS-ARB 7416, HDFC-ARB 2049, SBI-ARB 6391&#10;&#10;Units are optional (default 10)"></textarea>
+        <textarea class="bulk-textarea" id="fund-bulk-input" placeholder="Lowercase or uppercase — both work!&#10;&#10;Examples:&#10;spy 10&#10;qqq 5&#10;vfinx 20&#10;hdfcbank.bse 50&#10;&#10;Units are optional (default 10)"></textarea>
         <div class="bulk-actions">
           <span class="bulk-hint">Type (ETF/MF/Index) is detected automatically — just paste tickers</span>
           <button class="btn-sm" onclick="toggleFundBulk()">Cancel</button>
@@ -394,6 +464,50 @@
           <canvas id="fundChart" role="img" aria-label="Fund portfolio value over 30 days">Fund portfolio 30-day value trend.</canvas>
         </div>
       </div>
+    </div>
+
+    <!-- Indian Mutual Funds Panel -->
+    <div id="panel-mf" class="panel">
+      <div class="refresh-row">
+        <div>
+          <span style="font-size:15px;font-weight:500;">🇮🇳 Indian Mutual Funds</span>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">NAV data from AMFI · Updated daily</div>
+        </div>
+        <button class="btn-sm" onclick="refreshMF()">↻ Refresh NAV</button>
+      </div>
+
+      <!-- Summary metrics -->
+      <div class="metric-row" style="margin-bottom:20px;">
+        <div class="metric-card"><div class="metric-label">Total Invested</div><div class="metric-value" id="mf-invested">—</div></div>
+        <div class="metric-card"><div class="metric-label">Current Value</div><div class="metric-value" id="mf-current">—</div></div>
+        <div class="metric-card"><div class="metric-label">Total Gain</div><div class="metric-value up" id="mf-gain">—</div></div>
+        <div class="metric-card"><div class="metric-label">Today's Change</div><div class="metric-value" id="mf-today">—</div></div>
+      </div>
+
+      <!-- Progress bar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px;">
+          <span id="mf-bar-invested">Invested —</span>
+          <span id="mf-bar-gain">Gain —</span>
+          <span id="mf-bar-current">Current —</span>
+        </div>
+        <div style="background:var(--surface2);border-radius:4px;height:8px;overflow:hidden;">
+          <div id="mf-progress-bar" style="height:100%;background:var(--up);border-radius:4px;width:0%;transition:width 0.5s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Holdings table -->
+      <div class="section-hdr" style="margin-bottom:10px;">Holdings</div>
+      <div class="table-wrap" style="margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:110px 80px 1fr 90px 90px 80px 80px;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">
+          <span>Ticker</span><span>Type</span><span>Name</span><span>Price</span><span>Change</span><span>Value</span><span>7-Day</span>
+        </div>
+        <div id="mf-holdings-list"><div class="loading-row">Loading NAV data…</div></div>
+      </div>
+
+      <!-- Fund breakdown cards -->
+      <div class="section-hdr" style="margin-bottom:10px;">Fund Breakdown</div>
+      <div id="mf-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;"></div>
     </div>
 
     <!-- Weekly Panel -->
@@ -444,13 +558,16 @@
 /* ============================================================
    CONFIGURATION
    ============================================================ */
+// Yahoo Finance via allorigins CORS proxy — no API key needed, fast, no rate limit
 const YF_PROXY = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 
 /* ============================================================
    STATE
    ============================================================ */
-let portfolio = [];
+let portfolio = []; // US stocks
+let indianPortfolio = []; // Indian stocks
 let portChart = null;
+let indianChart = null;
 
 /* ============================================================
    INIT
@@ -458,11 +575,25 @@ let portChart = null;
 window.onload = () => {
   try {
     const savedPort = localStorage.getItem('sv_portfolio');
-    if (savedPort) portfolio = JSON.parse(savedPort);
+    if (savedPort) {
+      const all = JSON.parse(savedPort);
+      portfolio = all.filter(s => !isIndianTicker(s.ticker));
+      // migrate old Indian stocks to new storage
+      const oldIndian = all.filter(s => isIndianTicker(s.ticker));
+      if (oldIndian.length > 0 && !localStorage.getItem('sv_indian')) {
+        indianPortfolio = oldIndian;
+        saveIndian();
+      }
+    }
+    const savedIndian = localStorage.getItem('sv_indian');
+    if (savedIndian) indianPortfolio = JSON.parse(savedIndian);
     loadFundsFromStorage();
+    fetchUsdToInr();
     renderPortfolio();
+    renderIndian();
     renderFunds();
     if (portfolio.length > 0) refreshPortfolio();
+    if (indianPortfolio.length > 0) refreshIndian();
     loadTop10();
   } catch(e) {
     console.error('Init error:', e);
@@ -471,9 +602,10 @@ window.onload = () => {
 };
 
 /* ============================================================
-   LOCAL TICKER LOOKUP TABLE
+   LOCAL TICKER LOOKUP TABLE — works offline, no API needed
    ============================================================ */
 const TICKER_DB = [
+  // US Mega Cap Tech
   {t:'AAPL',n:'Apple Inc.',c:'Technology'},
   {t:'MSFT',n:'Microsoft Corporation',c:'Technology'},
   {t:'NVDA',n:'Nvidia Corporation',c:'Semiconductors'},
@@ -484,6 +616,7 @@ const TICKER_DB = [
   {t:'TSLA',n:'Tesla Inc.',c:'Electric Vehicles'},
   {t:'AVGO',n:'Broadcom Inc.',c:'Semiconductors'},
   {t:'ORCL',n:'Oracle Corporation',c:'Technology'},
+  // US Tech
   {t:'AMD',n:'Advanced Micro Devices',c:'Semiconductors'},
   {t:'INTC',n:'Intel Corporation',c:'Semiconductors'},
   {t:'QCOM',n:'Qualcomm Inc.',c:'Semiconductors'},
@@ -524,6 +657,7 @@ const TICKER_DB = [
   {t:'TWLO',n:'Twilio Inc.',c:'Software'},
   {t:'ZM',n:'Zoom Video Communications',c:'Software'},
   {t:'DOCU',n:'DocuSign Inc.',c:'Software'},
+  // US Finance
   {t:'JPM',n:'JPMorgan Chase',c:'Banking'},
   {t:'BAC',n:'Bank of America',c:'Banking'},
   {t:'WFC',n:'Wells Fargo',c:'Banking'},
@@ -540,6 +674,7 @@ const TICKER_DB = [
   {t:'AXP',n:'American Express',c:'Finance'},
   {t:'BRK-B',n:'Berkshire Hathaway B',c:'Conglomerate'},
   {t:'BRK-A',n:'Berkshire Hathaway A',c:'Conglomerate'},
+  // US Healthcare
   {t:'JNJ',n:'Johnson & Johnson',c:'Healthcare'},
   {t:'LLY',n:'Eli Lilly and Company',c:'Pharmaceuticals'},
   {t:'UNH',n:'UnitedHealth Group',c:'Healthcare'},
@@ -555,6 +690,8 @@ const TICKER_DB = [
   {t:'BNTX',n:'BioNTech SE',c:'Biotechnology'},
   {t:'REGN',n:'Regeneron Pharmaceuticals',c:'Biotechnology'},
   {t:'VRTX',n:'Vertex Pharmaceuticals',c:'Biotechnology'},
+  // US Consumer
+  {t:'AMZN',n:'Amazon.com Inc.',c:'Retail'},
   {t:'WMT',n:'Walmart Inc.',c:'Retail'},
   {t:'COST',n:'Costco Wholesale',c:'Retail'},
   {t:'TGT',n:'Target Corporation',c:'Retail'},
@@ -572,6 +709,7 @@ const TICKER_DB = [
   {t:'MDLZ',n:'Mondelez International',c:'Food'},
   {t:'GIS',n:'General Mills',c:'Food'},
   {t:'K',n:'Kellanova (Kellogg)',c:'Food'},
+  // US Energy
   {t:'XOM',n:'Exxon Mobil',c:'Energy'},
   {t:'CVX',n:'Chevron Corporation',c:'Energy'},
   {t:'COP',n:'ConocoPhillips',c:'Energy'},
@@ -580,6 +718,7 @@ const TICKER_DB = [
   {t:'PSX',n:'Phillips 66',c:'Energy'},
   {t:'NEE',n:'NextEra Energy',c:'Utilities'},
   {t:'DUK',n:'Duke Energy',c:'Utilities'},
+  // US Industrial
   {t:'GE',n:'GE Aerospace',c:'Aerospace'},
   {t:'BA',n:'Boeing Company',c:'Aerospace'},
   {t:'LMT',n:'Lockheed Martin',c:'Defense'},
@@ -595,12 +734,14 @@ const TICKER_DB = [
   {t:'GM',n:'General Motors',c:'Automotive'},
   {t:'RIVN',n:'Rivian Automotive',c:'Electric Vehicles'},
   {t:'LCID',n:'Lucid Group',c:'Electric Vehicles'},
+  // US Telecom & Media
   {t:'T',n:'AT&T Inc.',c:'Telecom'},
   {t:'VZ',n:'Verizon Communications',c:'Telecom'},
   {t:'TMUS',n:'T-Mobile US',c:'Telecom'},
   {t:'CMCSA',n:'Comcast Corporation',c:'Media'},
   {t:'WBD',n:'Warner Bros Discovery',c:'Media'},
   {t:'PARA',n:'Paramount Global',c:'Media'},
+  // Popular ETFs
   {t:'SPY',n:'SPDR S&P 500 ETF Trust',c:'ETF'},
   {t:'VOO',n:'Vanguard S&P 500 ETF',c:'ETF'},
   {t:'IVV',n:'iShares Core S&P 500 ETF',c:'ETF'},
@@ -623,12 +764,14 @@ const TICKER_DB = [
   {t:'EEM',n:'iShares MSCI Emerging Markets ETF',c:'ETF'},
   {t:'VEA',n:'Vanguard FTSE Developed Markets ETF',c:'ETF'},
   {t:'IEMG',n:'iShares Core MSCI Emerging Markets',c:'ETF'},
+  // Index Funds / Mutual Funds
   {t:'VFINX',n:'Vanguard 500 Index Fund',c:'Mutual Fund'},
   {t:'VTSAX',n:'Vanguard Total Stock Market Index',c:'Index Fund'},
   {t:'FXAIX',n:'Fidelity 500 Index Fund',c:'Index Fund'},
   {t:'SWPPX',n:'Schwab S&P 500 Index Fund',c:'Index Fund'},
   {t:'VBTLX',n:'Vanguard Total Bond Market Index',c:'Index Fund'},
   {t:'VTIAX',n:'Vanguard Total International Stock',c:'Index Fund'},
+  // Crypto
   {t:'BTC-USD',n:'Bitcoin USD',c:'Crypto'},
   {t:'ETH-USD',n:'Ethereum USD',c:'Crypto'},
   {t:'BNB-USD',n:'Binance Coin USD',c:'Crypto'},
@@ -637,36 +780,46 @@ const TICKER_DB = [
   {t:'ADA-USD',n:'Cardano USD',c:'Crypto'},
   {t:'DOGE-USD',n:'Dogecoin USD',c:'Crypto'},
   {t:'AVAX-USD',n:'Avalanche USD',c:'Crypto'},
-  {t:'RELIANCE.BSE',n:'Reliance Industries',c:'India'},
-  {t:'TCS.BSE',n:'Tata Consultancy Services',c:'India'},
-  {t:'HDFCBANK.BSE',n:'HDFC Bank',c:'India'},
-  {t:'INFY.BSE',n:'Infosys Limited',c:'India'},
-  {t:'ICICIBANK.BSE',n:'ICICI Bank',c:'India'},
-  {t:'HINDUNILVR.BSE',n:'Hindustan Unilever',c:'India'},
-  {t:'BAJFINANCE.BSE',n:'Bajaj Finance',c:'India'},
-  {t:'SBIN.BSE',n:'State Bank of India',c:'India'},
-  {t:'BHARTIARTL.BSE',n:'Bharti Airtel',c:'India'},
-  {t:'WIPRO.BSE',n:'Wipro Limited',c:'India'},
-  {t:'ADANIENT.BSE',n:'Adani Enterprises',c:'India'},
-  {t:'TATAMOTORS.BSE',n:'Tata Motors',c:'India'},
-  {t:'TATASTEEL.BSE',n:'Tata Steel',c:'India'},
-  {t:'MARUTI.BSE',n:'Maruti Suzuki',c:'India'},
-  {t:'SUNPHARMA.BSE',n:'Sun Pharmaceutical',c:'India'},
-  {t:'HCLTECH.BSE',n:'HCL Technologies',c:'India'},
-  {t:'TECHM.BSE',n:'Tech Mahindra',c:'India'},
-  {t:'ASIANPAINT.BSE',n:'Asian Paints',c:'India'},
-  {t:'AXISBANK.BSE',n:'Axis Bank',c:'India'},
-  {t:'KOTAKBANK.BSE',n:'Kotak Mahindra Bank',c:'India'},
-  {t:'LT.BSE',n:'Larsen & Toubro',c:'India'},
-  {t:'ONGC.BSE',n:'Oil and Natural Gas Corporation',c:'India'},
-  {t:'NTPC.BSE',n:'NTPC Limited',c:'India'},
-  {t:'POWERGRID.BSE',n:'Power Grid Corporation',c:'India'},
-  {t:'TITAN.BSE',n:'Titan Company',c:'India'},
-  {t:'NESTLEIND.BSE',n:'Nestle India',c:'India'},
-  {t:'ULTRACEMCO.BSE',n:'UltraTech Cement',c:'India'},
-  {t:'JSWSTEEL.BSE',n:'JSW Steel',c:'India'},
-  {t:'DRREDDY.BSE',n:'Dr Reddys Laboratories',c:'India'},
-  {t:'CIPLA.BSE',n:'Cipla Limited',c:'India'},
+  // Indian Stocks — NSE format (.NS)
+  {t:'RELIANCE.NS',n:'Reliance Industries (NSE)',c:'India'},
+  {t:'TCS.NS',n:'Tata Consultancy Services (NSE)',c:'India'},
+  {t:'HDFCBANK.NS',n:'HDFC Bank (NSE)',c:'India'},
+  {t:'INFY.NS',n:'Infosys Limited (NSE)',c:'India'},
+  {t:'ICICIBANK.NS',n:'ICICI Bank (NSE)',c:'India'},
+  {t:'HINDUNILVR.NS',n:'Hindustan Unilever (NSE)',c:'India'},
+  {t:'BAJFINANCE.NS',n:'Bajaj Finance (NSE)',c:'India'},
+  {t:'SBIN.NS',n:'State Bank of India (NSE)',c:'India'},
+  {t:'BHARTIARTL.NS',n:'Bharti Airtel (NSE)',c:'India'},
+  {t:'WIPRO.NS',n:'Wipro Limited (NSE)',c:'India'},
+  {t:'ADANIENT.NS',n:'Adani Enterprises (NSE)',c:'India'},
+  {t:'TATAMOTORS.NS',n:'Tata Motors (NSE)',c:'India'},
+  {t:'TATASTEEL.NS',n:'Tata Steel (NSE)',c:'India'},
+  {t:'MARUTI.NS',n:'Maruti Suzuki (NSE)',c:'India'},
+  {t:'SUNPHARMA.NS',n:'Sun Pharmaceutical (NSE)',c:'India'},
+  {t:'HCLTECH.NS',n:'HCL Technologies (NSE)',c:'India'},
+  {t:'TECHM.NS',n:'Tech Mahindra (NSE)',c:'India'},
+  {t:'AXISBANK.NS',n:'Axis Bank (NSE)',c:'India'},
+  {t:'KOTAKBANK.NS',n:'Kotak Mahindra Bank (NSE)',c:'India'},
+  {t:'LT.NS',n:'Larsen & Toubro (NSE)',c:'India'},
+  {t:'DRREDDY.NS',n:'Dr Reddys Laboratories (NSE)',c:'India'},
+  {t:'CIPLA.NS',n:'Cipla Limited (NSE)',c:'India'},
+  // Indian ADRs — US-listed (USD, via Finnhub, always reliable)
+  {t:'HDB',n:'HDFC Bank (NYSE ADR)',c:'India ADR'},
+  {t:'IBN',n:'ICICI Bank (NYSE ADR)',c:'India ADR'},
+  {t:'INFY',n:'Infosys (NASDAQ ADR)',c:'India ADR'},
+  {t:'WIT',n:'Wipro (NYSE ADR)',c:'India ADR'},
+  {t:'TTM',n:'Tata Motors (NYSE ADR)',c:'India ADR'},
+  {t:'RDY',n:'Dr Reddys Laboratories (NYSE ADR)',c:'India ADR'},
+  {t:'VEDL',n:'Vedanta (NYSE ADR)',c:'India ADR'},
+  {t:'HZL',n:'Hindustan Zinc (NYSE ADR)',c:'India ADR'},
+  {t:'MTE',n:'Mittal Steel (NYSE ADR)',c:'India ADR'},
+  {t:'SIFY',n:'Sify Technologies (NASDAQ ADR)',c:'India ADR'},
+  {t:'YTRA',n:'Yatra Online (NASDAQ ADR)',c:'India ADR'},
+  {t:'MAXN',n:'Maxeon Solar (NASDAQ)',c:'India ADR'},
+  {t:'WNS',n:'WNS Holdings (NYSE ADR)',c:'India ADR'},
+  {t:'EXLS',n:'EXL Service Holdings (NASDAQ)',c:'India ADR'},
+  {t:'CTSH',n:'Cognizant Technology (NASDAQ)',c:'India ADR'},
+  {t:'AZRE',n:'Azure Power (NYSE ADR)',c:'India ADR'},
 ];
 
 function localSearch(query) {
@@ -685,7 +838,133 @@ function localSearch(query) {
 }
 
 /* ============================================================
-   YAHOO FINANCE HELPERS
+   FINNHUB — PRIMARY DATA SOURCE (no proxy needed)
+   ============================================================ */
+const FINNHUB_KEY = 'd7t2cr9r01qugn093d10d7t2cr9r01qugn093d1g';
+const FINNHUB = 'https://finnhub.io/api/v1';
+
+async function finnhubQuote(ticker) {
+  try {
+    const sym = ticker.replace('.BSE','').replace('.NSE','').replace('-USD','');
+    const r = await fetch(`${FINNHUB}/quote?symbol=${sym}&token=${FINNHUB_KEY}`,
+      { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d || !d.c || d.c === 0) return null;
+    return {
+      price: d.c, change: d.dp || 0, changeAbs: d.dp || 0,
+      prevClose: d.pc || 0, name: ticker, quoteType: null,
+    };
+  } catch(e) { return null; }
+}
+
+async function finnhubCandles(ticker, days) {
+  try {
+    const sym = ticker.replace('.BSE','').replace('.NSE','').replace('-USD','');
+    const to = Math.floor(Date.now() / 1000);
+    const from = to - days * 24 * 3600;
+    const r = await fetch(`${FINNHUB}/stock/candle?symbol=${sym}&resolution=D&from=${from}&to=${to}&token=${FINNHUB_KEY}`,
+      { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d || d.s !== 'ok' || !d.c) return null;
+    return d.c;
+  } catch(e) { return null; }
+}
+
+/* ============================================================
+   NSE INDIA — ACTUAL BSE/NSE PRICES
+   ============================================================ */
+// Maps .BSE/.NSE tickers to NSE symbol format
+function toNSESymbol(ticker) {
+  return ticker.replace('.BSE','').replace('.NSE','').toUpperCase();
+}
+
+async function nseQuote(ticker) {
+  // Extract symbol — HDFCBANK from HDFCBANK.NS or HDFCBANK.BSE
+  const sym = ticker.replace('.NS','').replace('.BSE','').replace('.NSE','').replace('.BO','').toUpperCase();
+
+  // Method 1: Try Indian Stock API (no key needed, no CORS issues)
+  try {
+    const r = await fetch(`https://indian-stock-market-api.vercel.app/stock?symbol=${sym}&res=num`,
+      { signal: AbortSignal.timeout(6000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d && d.last_price && d.last_price > 0) {
+        const local = TICKER_DB.find(t => t.t === ticker);
+        return {
+          price: d.last_price,
+          change: d.percent_change || 0,
+          changeAbs: d.percent_change || 0,
+          name: local ? local.n : sym,
+          quoteType: 'EQUITY', currency: 'INR'
+        };
+      }
+    }
+  } catch(e) {}
+
+  // Method 2: Yahoo Finance via proxy with .NS suffix
+  const sym2 = sym + '.NS';
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym2}?range=5d&interval=1d`;
+  for (const proxy of PROXIES) {
+    try {
+      const r = await fetch(proxy(url), { signal: AbortSignal.timeout(7000) });
+      if (!r.ok) continue;
+      const text = await r.text();
+      if (!text.includes('chart')) continue;
+      const d = JSON.parse(text);
+      if (!d?.chart?.result) continue;
+      const meta = d.chart.result[0].meta;
+      const price = meta.regularMarketPrice || meta.previousClose;
+      const prevClose = meta.previousClose || price;
+      const changePct = prevClose ? ((price - prevClose) / prevClose * 100) : 0;
+      const local = TICKER_DB.find(t => t.t === ticker);
+      return {
+        price, change: changePct, changeAbs: changePct,
+        name: local ? local.n : (meta.longName || meta.shortName || ticker),
+        quoteType: 'EQUITY', currency: 'INR'
+      };
+    } catch(e) { continue; }
+  }
+  return null;
+}
+
+async function nseHistory(ticker) {
+  const sym = ticker.replace('.NS','').replace('.BSE','').replace('.NSE','').replace('.BO','').toUpperCase();
+
+  // Method 1: Indian Stock API history
+  try {
+    const r = await fetch(`https://indian-stock-market-api.vercel.app/stock/history?symbol=${sym}&period=1mo`,
+      { signal: AbortSignal.timeout(6000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d && d.prices && d.prices.length > 0) {
+        return d.prices.map((p, i) => ({ date: i, close: p.close || p.price }));
+      }
+    }
+  } catch(e) {}
+
+  // Method 2: Yahoo Finance via proxy
+  const sym2 = sym + '.NS';
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym2}?range=1mo&interval=1d`;
+  for (const proxy of PROXIES) {
+    try {
+      const r = await fetch(proxy(url), { signal: AbortSignal.timeout(7000) });
+      if (!r.ok) continue;
+      const text = await r.text();
+      if (!text.includes('chart')) continue;
+      const d = JSON.parse(text);
+      if (!d?.chart?.result) continue;
+      const closes = d.chart.result[0].indicators.quote[0].close || [];
+      const valid = closes.filter(c => c != null);
+      if (valid.length > 0) return valid.map((c, i) => ({ date: i, close: c }));
+    } catch(e) { continue; }
+  }
+  return null;
+}
+
+/* ============================================================
+   YAHOO FINANCE — FALLBACK (via proxy)
    ============================================================ */
 const YF_HOSTS = [
   'https://query1.finance.yahoo.com',
@@ -717,28 +996,101 @@ async function yfFetch(ticker, range, interval) {
   return null;
 }
 
+/* ============================================================
+   CURRENCY CONVERSION — USD to INR for Indian ADRs
+   ============================================================ */
+const INDIAN_ADRS = ['HDB','IBN','WIT','TTM','RDY','VEDL','HZL','SIFY','WNS','EXLS','CTSH','YTRA','AZRE'];
+let usdToInr = 84; // fallback rate
+
+async function fetchUsdToInr() {
+  try {
+    // Use Finnhub forex rate — no proxy needed
+    const r = await fetch(`${FINNHUB}/forex/rates?base=USD&token=${FINNHUB_KEY}`, 
+      { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d?.quote?.INR) { usdToInr = d.quote.INR; return; }
+    }
+  } catch(e) {}
+  // Fallback: use a public exchange rate API
+  try {
+    const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD',
+      { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      const d = await r.json();
+      if (d?.rates?.INR) { usdToInr = d.rates.INR; return; }
+    }
+  } catch(e) {}
+}
+
+/* fetchQuote — Finnhub for US/ETF, NSE for Indian, Yahoo for crypto */
 async function fetchQuote(ticker) {
+  const isIndianNS = ticker.includes('.NS') || ticker.includes('.BO') || ticker.includes('.BSE') || ticker.includes('.NSE');
+  const isIndianADR = INDIAN_ADRS.includes(ticker);
+  const isCrypto = ticker.includes('-USD');
+
+  if (isIndianNS) {
+    const q = await nseQuote(ticker);
+    if (q) return q;
+  } else if (isIndianADR) {
+    // Fetch in USD from Finnhub, convert to INR
+    const fq = await finnhubQuote(ticker);
+    if (fq) {
+      const local = TICKER_DB.find(t => t.t === ticker);
+      if (local) fq.name = local.n;
+      // Convert USD price to INR
+      fq.priceUSD = fq.price;
+      fq.price = +(fq.price * usdToInr).toFixed(2);
+      fq.currency = 'INR';
+      fq.isADR = true;
+      return fq;
+    }
+  } else if (!isCrypto) {
+    // US stocks & ETFs — use Finnhub directly
+    const fq = await finnhubQuote(ticker);
+    if (fq) {
+      const local = TICKER_DB.find(t => t.t === ticker);
+      if (local) fq.name = local.n;
+      return fq;
+    }
+  }
+
+  // Fallback to Yahoo proxy for crypto and failed Indian stocks
   const d = await yfFetch(ticker, '5d', '1d');
   if (!d || !d.chart || d.chart.error || !d.chart.result) return null;
-  const res  = d.chart.result[0];
+  const res = d.chart.result[0];
   const meta = res.meta;
-  const price      = meta.regularMarketPrice || meta.previousClose;
-  const prevClose  = meta.previousClose || price;
-  const changePct  = prevClose ? ((price - prevClose) / prevClose * 100) : 0;
+  const price = meta.regularMarketPrice || meta.previousClose;
+  const prevClose = meta.previousClose || price;
+  const changePct = prevClose ? ((price - prevClose) / prevClose * 100) : 0;
+  const local = TICKER_DB.find(t => t.t === ticker);
   return {
-    price,
-    change: changePct,
-    changeAbs: changePct,
-    name: meta.longName || meta.shortName || ticker,
+    price, change: changePct, changeAbs: changePct,
+    name: local ? local.n : (meta.longName || meta.shortName || ticker),
     quoteType: meta.instrumentType || meta.quoteType || null,
   };
 }
 
+/* fetchDaily — Finnhub for US/ETF, NSE for Indian, Yahoo for crypto */
 async function fetchDaily(ticker) {
+  const isIndian = ticker.includes('.BSE') || ticker.includes('.NSE');
+  const isCrypto = ticker.includes('-USD');
+
+  if (isIndian) {
+    const hist = await nseHistory(ticker);
+    if (hist) return hist;
+  } else if (!isCrypto) {
+    const closes = await finnhubCandles(ticker, 35);
+    if (closes && closes.length > 0) {
+      return closes.map((c, i) => ({ date: i, close: c }));
+    }
+  }
+
+  // Fallback to Yahoo
   const d = await yfFetch(ticker, '1mo', '1d');
   if (!d || !d.chart || d.chart.error || !d.chart.result) return null;
-  const res    = d.chart.result[0];
-  const times  = res.timestamp || [];
+  const res = d.chart.result[0];
+  const times = res.timestamp || [];
   const closes = res.indicators.quote[0].close || [];
   return times.map((t, i) => ({
     date: new Date(t * 1000).toISOString().slice(0, 10),
@@ -761,7 +1113,9 @@ async function fetchWeekly(ticker) {
   });
 }
 
+/* Search by company name — uses Yahoo Finance autocomplete directly */
 async function searchTicker(query) {
+  // This endpoint works without CORS issues from https:// hosted sites
   try {
     const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0&enableFuzzyQuery=true&corsDomain=finance.yahoo.com`;
     const r = await fetch(url, {
@@ -784,6 +1138,7 @@ async function searchTicker(query) {
     }
   } catch(e) {}
 
+  // Proxy fallbacks
   const searchUrl = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0&enableFuzzyQuery=true`;
   const tryProxies = [
     `https://corsproxy.io/?${encodeURIComponent(searchUrl)}`,
@@ -809,6 +1164,7 @@ async function searchTicker(query) {
     } catch(e) { continue; }
   }
 
+  // Last resort — only for inputs that are clearly ticker-like (all letters, 2-5 chars, no spaces)
   const clean = query.trim().toUpperCase();
   if (/^[A-Z]{2,5}$/.test(clean) && !['APP','THE','AND','FOR','INC','LTD','COM'].includes(clean)) {
     return [{ ticker: clean, name: 'Search unavailable — added as ticker', type: 'EQUITY', exchange: 'Direct' }];
@@ -819,28 +1175,17 @@ async function searchTicker(query) {
 async function runSearch(query, dropdownId, inputId, isFund) {
   const dd = document.getElementById(dropdownId);
 
-  // Show Indian MF suggestions if input matches
-  if (isFund) {
-    const q = query.toUpperCase();
-    const mfSuggestions = Object.entries(INDIAN_MF_CODES)
-      .filter(([key, val]) => key.includes(q) || val.name.toUpperCase().includes(q) || q.includes('ARB') || q.includes('AXIS') || q.includes('HDFC') || q.includes('SBI'))
-      .map(([key, val]) => ({ ticker: key, name: val.name, type: 'Indian MF', exchange: 'MFAPI · Live NAV' }));
-    if (mfSuggestions.length && (q.includes('ARB') || q.includes('AXIS') || q.includes('HDFC') || q.includes('SBI') || q.includes('MF'))) {
-      dd.innerHTML = renderDropdownItems(mfSuggestions, dropdownId, inputId, isFund);
-      dd.classList.add('open');
-      return;
-    }
-  }
-
+  // Step 1: Show local results INSTANTLY
   const localResults = localSearch(query);
   if (localResults.length) {
     dd.innerHTML = renderDropdownItems(localResults, dropdownId, inputId, isFund);
     dd.classList.add('open');
-    return;
+    return; // Local results are good — no need to call Yahoo
   }
 
+  // Step 2: If no local match, try Yahoo in background
   const clean = query.trim().toUpperCase();
-  const looksLikeTicker = /^[A-Z0-9.]{1,10}$/.test(clean);
+  const looksLikeTicker = /^[A-Z0-9][A-Z0-9.\-]{0,14}$/.test(clean);
   if (looksLikeTicker) {
     dd.innerHTML = renderDropdownItems([{ ticker: clean, name: 'Add "' + clean + '" directly', type: 'EQUITY', exchange: 'Press Enter or click' }], dropdownId, inputId, isFund);
     dd.classList.add('open');
@@ -862,7 +1207,7 @@ async function runSearch(query, dropdownId, inputId, isFund) {
 }
 
 function renderDropdownItems(items, dropdownId, inputId, isFund) {
-  const typeLabel = { EQUITY: 'Stock', ETF: 'ETF', MUTUALFUND: 'Fund', INDEX: 'Index', 'Indian MF': 'Indian MF' };
+  const typeLabel = { EQUITY: 'Stock', ETF: 'ETF', MUTUALFUND: 'Fund', INDEX: 'Index' };
   return items.map((r) =>
     `<div class="search-item" onmousedown="event.preventDefault();selectResult('${r.ticker}','${(r.name||'').replace(/'/g,"\\'")}','${dropdownId}','${inputId}',${isFund})">
       <span class="search-item-ticker">${r.ticker}</span>
@@ -877,7 +1222,7 @@ function renderDropdownItems(items, dropdownId, inputId, isFund) {
    ============================================================ */
 async function addStock() {
   const raw = document.getElementById('ticker-input').value.trim();
-  const ticker = raw.toUpperCase().split(' ')[0];
+  const ticker = raw.toUpperCase().split(' ')[0]; // strip any name after space
   const qty = parseInt(document.getElementById('qty-input').value) || 1;
   if (!ticker) { showToast('Search for a stock first', true); return; }
   if (portfolio.find(s => s.ticker === ticker)) { showToast(ticker + ' is already in your portfolio', true); return; }
@@ -910,10 +1255,12 @@ async function loadHistory(stock) {
 async function refreshPortfolio() {
   if (portfolio.length === 0) return;
   showToast('Updating prices…');
+  // Fetch all quotes in parallel — no rate limit with Yahoo Finance
   const quotes = await Promise.all(portfolio.map(s => fetchQuote(s.ticker)));
   quotes.forEach((q, i) => {
     if (q) { portfolio[i].price = q.price; portfolio[i].changePct = q.change; portfolio[i].change = q.change; if (q.name && q.name !== portfolio[i].ticker) portfolio[i].name = q.name; }
   });
+  // Fetch all histories in parallel too
   const hists = await Promise.all(portfolio.map(s => fetchDaily(s.ticker)));
   hists.forEach((h, i) => { if (h) portfolio[i].history = h.map(d => d.close); });
   savePortfolio();
@@ -942,14 +1289,17 @@ function renderPortfolio() {
     const price = s.price || 0;
     const qty = s.qty || 0;
     const changePct = s.changePct || s.change || 0;
-    const val = (price * qty).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+    const isIndian = s.ticker.includes('.NS') || s.ticker.includes('.BO') || s.ticker.includes('.BSE') || s.ticker.includes('.NSE') || INDIAN_ADRS.includes(s.ticker) || s.currency === 'INR';
+    const currSymbol = isIndian ? '₹' : '$';
+    const currency = isIndian ? 'INR' : 'USD';
+    const val = (price * qty).toLocaleString('en-IN', { style: 'currency', currency, maximumFractionDigits: 2 });
     const chgClass = changePct >= 0 ? 'up' : 'down';
     const chgStr = (changePct >= 0 ? '+' : '') + changePct.toFixed(2) + '%';
     const sparkId = 'sp_' + s.ticker.replace(/[^a-zA-Z0-9]/g, '_');
     return `<div class="stock-row">
       <span class="ticker">${s.ticker}</span>
       <span class="sname">${s.name || s.ticker}</span>
-      <span class="price">$${price.toFixed(2)}</span>
+      <span class="price">${currSymbol}${price.toFixed(2)}</span>
       <span class="chg ${chgClass}">${chgStr}</span>
       <span class="price">${val}</span>
       <canvas class="sparkline-cell" id="${sparkId}" width="80" height="36" role="img" aria-label="${s.ticker} 7-day chart"></canvas>
@@ -973,7 +1323,10 @@ function updateMetrics() {
   const gainers = portfolio.filter(s => (s.changePct || s.change || 0) >= 0).length;
   const losers = portfolio.length - gainers;
   const best = portfolio.length > 0 ? portfolio.reduce((a, b) => (a.changePct || 0) > (b.changePct || 0) ? a : b) : null;
+  const totalInr = total * usdToInr;
+
   document.getElementById('m-value').textContent = portfolio.length === 0 ? '—' : '$' + Math.round(total).toLocaleString();
+  document.getElementById('m-value-inr').textContent = portfolio.length === 0 ? '' : '≈ ₹' + Math.round(totalInr).toLocaleString('en-IN');
   document.getElementById('m-count').textContent = portfolio.length || '—';
   document.getElementById('m-gainers').textContent = portfolio.length === 0 ? '—' : gainers;
   document.getElementById('m-losers').textContent = portfolio.length === 0 ? '—' : losers;
@@ -1009,11 +1362,13 @@ function renderPortChart(stocks) {
     labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
   }
 
+  // Build combined portfolio value per day using available history
   const data = [];
   for (let i = 0; i <= days; i++) {
     let val = 0;
     stocks.forEach(s => {
       if (s.history && s.history.length > 0) {
+        const idx = Math.min(i, s.history.length - 1);
         const histIdx = Math.max(0, s.history.length - 1 - (days - i));
         val += (s.history[histIdx] || s.price) * s.qty;
       }
@@ -1097,6 +1452,7 @@ function weekCardHTML(s, weekly) {
 /* ============================================================
    TOP 10 GLOBAL GAINERS + NEWS
    ============================================================ */
+// Broad global watchlist: US stocks, Indian stocks, ETFs, crypto
 const GLOBAL_WATCHLIST = {
   us:     ['AAPL','MSFT','NVDA','META','GOOGL','AMZN','TSLA','AMD','PLTR','CRWD','SNOW','PANW','ARM','MRVL','SMCI','JPM','V','MA','UNH','XOM','CVX','NFLX','ORCL','ADBE','CRM','INTC','QCOM','MU','AVGO','LRCX'],
   in:     ['RELIANCE.BSE','TCS.BSE','HDFCBANK.BSE','INFY.BSE','ICICIBANK.BSE','HINDUNILVR.BSE','BAJFINANCE.BSE','SBIN.BSE','BHARTIARTL.BSE','WIPRO.BSE','ADANIENT.BSE','TATAMOTORS.BSE','TATASTEEL.BSE','MARUTI.BSE','SUNPHARMA.BSE'],
@@ -1108,29 +1464,27 @@ let allTop10Data = [];
 let currentRegion = 'all';
 
 async function loadTop10() {
-  document.getElementById('top10-list').innerHTML = '<div class="loading-row"><span class="spin">↻</span> Loading last week\'s top performers…</div>';
+  document.getElementById('top10-list').innerHTML = '<div class="loading-row"><span class="spin">↻</span> Loading top performers…</div>';
   document.getElementById('top10-news').innerHTML = '<div class="loading-row">Loading news…</div>';
   allTop10Data = [];
 
-  const allTickers = [...new Set([...GLOBAL_WATCHLIST.us, ...GLOBAL_WATCHLIST.etf, ...GLOBAL_WATCHLIST.crypto])];
-  const BATCH = 8;
+  const allTickers = [...new Set([...GLOBAL_WATCHLIST.us, ...GLOBAL_WATCHLIST.etf])];
+  const BATCH = 10;
 
   for (let i = 0; i < allTickers.length; i += BATCH) {
     const batch = allTickers.slice(i, i + BATCH);
     const results = await Promise.all(batch.map(async ticker => {
       try {
-        const d = await yfFetch(ticker, '1mo', '1wk');
-        if (!d?.chart?.result) return null;
-        const res = d.chart.result[0];
-        const closes = (res.indicators.quote[0].close || []).filter(c => c != null);
-        if (closes.length < 2) return null;
-        const prev = closes[closes.length - 2];
-        const last = closes[closes.length - 1];
-        if (!prev || prev === 0) return null;
-        const changePct = ((last - prev) / prev) * 100;
+        const fq = await finnhubQuote(ticker);
+        if (!fq || !fq.price) return null;
         const local = TICKER_DB.find(t => t.t === ticker);
-        const name = local ? local.n : (res.meta.longName || res.meta.shortName || ticker);
-        return { ticker, name, price: last, changePct, region: getRegion(ticker) };
+        return {
+          ticker,
+          name: local ? local.n : ticker,
+          price: fq.price,
+          changePct: fq.change || 0,
+          region: getRegion(ticker)
+        };
       } catch(e) { return null; }
     }));
 
@@ -1147,12 +1501,24 @@ async function loadTop10() {
       document.getElementById('top10-updated').textContent =
         `Loaded ${allTop10Data.length} of ${allTickers.length} · ${new Date().toLocaleTimeString()}`;
     }
+    await sleep(150);
   }
 
+  const now = new Date();
+  const isWeekend = now.getDay() === 0 || now.getDay() === 6;
   document.getElementById('top10-updated').textContent =
-    `Last week's performance · ${new Date().toLocaleTimeString()}`;
+    `Updated ${now.toLocaleTimeString()}${isWeekend ? ' · Weekend — last trading day' : ''}`;
   filterTop10(currentRegion, null);
   loadMarketNews();
+}
+
+
+// Lightweight daily fetch — just last 5 days close prices
+async function fetchDailyShort(ticker) {
+  const d = await yfFetch(ticker, '5d', '1d');
+  if (!d || !d.chart || d.chart.error || !d.chart.result) return null;
+  const closes = d.chart.result[0].indicators.quote[0].close || [];
+  return closes.filter(c => c !== null && c !== undefined);
 }
 
 function getRegion(ticker) {
@@ -1170,6 +1536,7 @@ function filterTop10(region, btnEl) {
   }
 
   let filtered = region === 'all' ? allTop10Data : allTop10Data.filter(s => s.region === region);
+  // Remove any that still have exactly 0 change — no data available
   filtered = filtered.filter(s => Math.abs(s.changePct) > 0.001);
   const top10 = filtered.slice(0, 10);
   const maxChange = top10.length > 0 ? Math.max(...top10.map(s => Math.abs(s.changePct))) : 1;
@@ -1199,6 +1566,7 @@ function filterTop10(region, btnEl) {
 }
 
 async function loadMarketNews() {
+  // Pull Yahoo Finance RSS news feed via proxy
   const rssUrl = 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC,^DJI,^IXIC&region=US&lang=en-US';
   let newsHtml = '';
 
@@ -1229,7 +1597,29 @@ async function loadMarketNews() {
     } catch(e) { continue; }
   }
 
-  document.getElementById('top10-news').innerHTML = newsHtml || '<div class="empty" style="padding:16px;">News unavailable from local file — <a href="https://finance.yahoo.com" target="_blank" style="color:var(--accent);">open Yahoo Finance</a> for live news.</div>';
+  document.getElementById('top10-news').innerHTML = newsHtml || `<div class="news-wrap">
+    <div class="news-card">
+      <div class="news-dot"></div>
+      <div class="news-body">
+        <div class="news-title"><a href="https://finance.yahoo.com/news" target="_blank">📰 Latest market news on Yahoo Finance →</a></div>
+        <div class="news-meta">Click to open live market news in a new tab</div>
+      </div>
+    </div>
+    <div class="news-card">
+      <div class="news-dot"></div>
+      <div class="news-body">
+        <div class="news-title"><a href="https://economictimes.indiatimes.com/markets" target="_blank">📰 Economic Times — Indian Markets →</a></div>
+        <div class="news-meta">Click to open Indian market news in a new tab</div>
+      </div>
+    </div>
+    <div class="news-card">
+      <div class="news-dot"></div>
+      <div class="news-body">
+        <div class="news-title"><a href="https://www.moneycontrol.com/news/business/markets/" target="_blank">📰 Moneycontrol — Markets →</a></div>
+        <div class="news-meta">Click to open Moneycontrol news in a new tab</div>
+      </div>
+    </div>
+  </div>`;
 }
 
 function timeAgo(date) {
@@ -1253,13 +1643,17 @@ function toggleBulk() {
 }
 
 function parseBulkInput(raw) {
+  // Normalize: replace commas with spaces, split on whitespace/newlines
   const tokens = raw.replace(/,/g, ' ').split(/\s+/).map(t => t.trim()).filter(Boolean);
   const entries = [];
   let i = 0;
   while (i < tokens.length) {
     const t = tokens[i].toUpperCase();
+    // Skip empty
     if (!t) { i++; continue; }
-    if (/^[A-Z.]{1,8}$/.test(t)) {
+    // Check if it looks like a ticker (letters, dots, hyphens — up to 15 chars for Indian stocks)
+    if (/^[A-Z0-9][A-Z0-9.\-]{0,14}$/.test(t)) {
+      // Peek ahead for a number
       const next = tokens[i + 1];
       const qty = next && /^\d+$/.test(next) ? parseInt(next) : 10;
       if (next && /^\d+$/.test(next)) i++;
@@ -1304,6 +1698,7 @@ async function runBulkImport() {
     added++;
   }
 
+  // Load histories for newly added — all in parallel
   prog.innerHTML = `Loading price history…`;
   await Promise.all(portfolio.filter(s => s.history.length === 0).map(s => loadHistory(s)));
 
@@ -1317,47 +1712,13 @@ async function runBulkImport() {
 }
 
 /* ============================================================
-   INDIAN MUTUAL FUNDS — MFAPI (no API key needed)
-   ============================================================ */
-const INDIAN_MF_CODES = {
-  'AXIS-ARB': { code: '120503', name: 'Axis Arbitrage Fund — Regular Growth', currency: 'INR' },
-  'HDFC-ARB': { code: '119062', name: 'HDFC Arbitrage Fund Wholesale Growth', currency: 'INR' },
-  'SBI-ARB':  { code: '125497', name: 'SBI Arbitrage Opportunities Fund Growth', currency: 'INR' },
-};
-
-async function fetchIndianMFNav(pseudoTicker) {
-  const mf = INDIAN_MF_CODES[pseudoTicker];
-  if (!mf) return null;
-  try {
-    const r = await fetch(`https://api.mfapi.in/mf/${mf.code}`, { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) return null;
-    const d = await r.json();
-    const nav = parseFloat(d.data[0].nav);
-    const prevNav = parseFloat(d.data[1]?.nav || nav);
-    const changePct = prevNav ? ((nav - prevNav) / prevNav) * 100 : 0;
-    return { price: nav, change: changePct, name: mf.name, quoteType: 'MUTUALFUND', currency: 'INR' };
-  } catch(e) { return null; }
-}
-
-async function fetchIndianMFHistory(pseudoTicker) {
-  const mf = INDIAN_MF_CODES[pseudoTicker];
-  if (!mf) return null;
-  try {
-    const r = await fetch(`https://api.mfapi.in/mf/${mf.code}`, { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) return null;
-    const d = await r.json();
-    return d.data.slice(0, 30).reverse().map(e => parseFloat(e.nav));
-  } catch(e) { return null; }
-}
-
-/* ============================================================
    FUNDS
    ============================================================ */
-let funds = [];
+let funds = []; // [{ticker, type, name, qty, price, changePct, history}]
 let fundChart = null;
 
-const FUND_TYPE_LABELS = { ETF: 'ETF', MF: 'MF', INF: 'India MF', IDX: 'Index' };
-const FUND_TYPE_CSS    = { ETF: 'ftype-etf', MF: 'ftype-mf', INF: 'ftype-inf', IDX: 'ftype-ind' };
+const FUND_TYPE_LABELS = { ETF: 'ETF', MF: 'MF', INF: 'India', IDX: 'Index' };
+const FUND_TYPE_CSS    = { ETF: 'ftype-etf', MF: 'ftype-mf', INF: 'ftype-ind', IDX: 'ftype-inf' };
 
 function loadFundsFromStorage() {
   const saved = localStorage.getItem('sv_funds');
@@ -1376,18 +1737,13 @@ async function addFund() {
   const btn = document.getElementById('fund-add-btn');
   btn.disabled = true; btn.textContent = 'Fetching…';
 
-  // Use MFAPI for Indian MF tickers, Yahoo for everything else
-  const quote = INDIAN_MF_CODES[ticker]
-    ? await fetchIndianMFNav(ticker)
-    : await fetchQuote(ticker);
-
+  const quote = await fetchQuote(ticker);
   if (!quote) {
     showToast('Could not find ' + ticker + '. Check ticker or internet.', true);
     btn.disabled = false; btn.textContent = '+ Add fund'; return;
   }
-  const type = INDIAN_MF_CODES[ticker] ? 'INF' : detectFundType(quote.quoteType, ticker);
-  const currency = quote.currency || 'USD';
-  funds.push({ ticker, type, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [], currency });
+  const type = detectFundType(quote.quoteType, ticker);
+  funds.push({ ticker, type, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [] });
   await loadFundHistory(funds[funds.length - 1]);
   saveFunds();
   renderFunds();
@@ -1398,35 +1754,17 @@ async function addFund() {
 }
 
 async function loadFundHistory(fund) {
-  // Use MFAPI history for Indian MFs, Yahoo for everything else
-  const hist = INDIAN_MF_CODES[fund.ticker]
-    ? await fetchIndianMFHistory(fund.ticker)
-    : await fetchDaily(fund.ticker).then(d => d ? d.map(x => x.close) : null);
-  if (hist) fund.history = hist;
+  const hist = await fetchDaily(fund.ticker);
+  if (hist) fund.history = hist.map(d => d.close);
 }
 
 async function refreshFunds() {
   if (funds.length === 0) return;
   showToast('Updating fund prices…');
-  // Fetch quotes — Indian MFs from MFAPI, others from Yahoo
-  const quotes = await Promise.all(funds.map(f =>
-    INDIAN_MF_CODES[f.ticker] ? fetchIndianMFNav(f.ticker) : fetchQuote(f.ticker)
-  ));
-  quotes.forEach((q, i) => {
-    if (q) {
-      funds[i].price = q.price;
-      funds[i].changePct = q.change;
-      if (q.name && q.name !== funds[i].ticker) funds[i].name = q.name;
-      if (q.currency) funds[i].currency = q.currency;
-    }
-  });
-  // Fetch histories
-  const hists = await Promise.all(funds.map(f =>
-    INDIAN_MF_CODES[f.ticker]
-      ? fetchIndianMFHistory(f.ticker)
-      : fetchDaily(f.ticker).then(d => d ? d.map(x => x.close) : null)
-  ));
-  hists.forEach((h, i) => { if (h) funds[i].history = h; });
+  const quotes = await Promise.all(funds.map(f => fetchQuote(f.ticker)));
+  quotes.forEach((q, i) => { if (q) { funds[i].price = q.price; funds[i].changePct = q.change; if (q.name && q.name !== funds[i].ticker) funds[i].name = q.name; } });
+  const hists = await Promise.all(funds.map(f => fetchDaily(f.ticker)));
+  hists.forEach((h, i) => { if (h) funds[i].history = h.map(d => d.close); });
   saveFunds();
   renderFunds();
   document.getElementById('fund-last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -1440,9 +1778,10 @@ function removeFund(ticker) {
 }
 
 function renderFunds() {
+  // Metrics
   const total = funds.reduce((s, f) => s + f.price * f.qty, 0);
   const etfCount = funds.filter(f => f.type === 'ETF').length;
-  const mfCount  = funds.filter(f => f.type === 'MF' || f.type === 'INF').length;
+  const mfCount  = funds.filter(f => f.type === 'MF').length;
   const indCount = funds.filter(f => f.type === 'IDX').length;
   const best = funds.length > 0 ? funds.reduce((a, b) => a.changePct > b.changePct ? a : b) : null;
   document.getElementById('fm-value').textContent = funds.length === 0 ? '—' : '$' + Math.round(total).toLocaleString();
@@ -1458,14 +1797,12 @@ function renderFunds() {
   }
 
   document.getElementById('funds-list').innerHTML = funds.map(f => {
-    // Show ₹ for Indian MFs, $ for everything else
-    const isINR = f.currency === 'INR';
-    const val = isINR
-      ? '₹' + (f.price * f.qty).toLocaleString('en-IN', { maximumFractionDigits: 2 })
-      : (f.price * f.qty).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
-    const priceStr = isINR ? '₹' + f.price.toFixed(4) : '$' + f.price.toFixed(2);
+    const isIndian = f.ticker.includes('.NS') || f.ticker.includes('.BO') || f.ticker.includes('.BSE') || f.ticker.includes('.NSE') || INDIAN_ADRS.includes(f.ticker) || f.currency === 'INR';
+    const currSymbol = isIndian ? '₹' : '$';
+    const currency = isIndian ? 'INR' : 'USD';
+    const val = (f.price * f.qty).toLocaleString('en-IN', { style: 'currency', currency, maximumFractionDigits: 2 });
     const cls = f.changePct >= 0 ? 'up' : 'down';
-    const chgStr = (f.changePct >= 0 ? '+' : '') + f.changePct.toFixed(4) + '%';
+    const chgStr = (f.changePct >= 0 ? '+' : '') + f.changePct.toFixed(2) + '%';
     const spId = 'fsp_' + f.ticker.replace(/[^a-zA-Z0-9]/g, '_');
     const typeCss = FUND_TYPE_CSS[f.type] || 'ftype-etf';
     const typeLabel = FUND_TYPE_LABELS[f.type] || f.type;
@@ -1473,7 +1810,7 @@ function renderFunds() {
       <span class="ticker">${f.ticker}</span>
       <span class="ftype ${typeCss}">${typeLabel}</span>
       <span class="sname">${f.name}</span>
-      <span class="price">${priceStr}</span>
+      <span class="price">${currSymbol}${f.price.toFixed(2)}</span>
       <span class="chg ${cls}">${chgStr}</span>
       <span class="price">${val}</span>
       <canvas class="sparkline-cell" id="${spId}" width="80" height="36" role="img" aria-label="${f.ticker} 7-day chart"></canvas>
@@ -1482,7 +1819,7 @@ function renderFunds() {
   }).join('');
 
   funds.forEach(f => {
-    const canvas = document.getElementById('fsp_' + f.ticker.replace(/[^a-zA-Z0-9]/g, '_'));
+    const canvas = document.getElementById('fsp_' + f.ticker.replace('.','_'));
     if (canvas && f.history && f.history.length > 1) drawSparkline(canvas, f.history.slice(-7), f.changePct >= 0);
   });
 
@@ -1524,10 +1861,10 @@ function renderFundChart(fundList) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { label: c => ' ' + Math.round(c.raw).toLocaleString() } } },
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { label: c => ' $' + Math.round(c.raw).toLocaleString() } } },
       scales: {
         x: { ticks: { autoSkip: true, maxTicksLimit: 8, color: '#7a8099', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { callback: v => Math.round(v / 1000) + 'k', color: '#7a8099', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        y: { ticks: { callback: v => '$' + Math.round(v / 1000) + 'k', color: '#7a8099', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.04)' } }
       }
     }
   });
@@ -1550,13 +1887,15 @@ function detectFundType(quoteType, ticker) {
 }
 
 function parseFundBulk(raw) {
+  // TICKER and optional UNITS only — type is auto-detected from Yahoo
   return raw.split(/[\n,]+/).map(l => l.trim()).filter(Boolean).map(line => {
     const parts = line.split(/\s+/);
     const ticker = parts[0].toUpperCase();
-    if (!ticker || !/^[A-Z0-9.\-]{1,12}$/.test(ticker)) return null;
+    if (!ticker || !/^[A-Z0-9][A-Z0-9.\-]{0,14}$/.test(ticker)) return null;
     let qty = 10;
     for (let i = 1; i < parts.length; i++) {
       if (/^\d+$/.test(parts[i])) qty = parseInt(parts[i]);
+      // Old-style type codes (ETF/MF/INF/IDX) are silently ignored — auto-detected now
     }
     return { ticker, qty };
   }).filter(Boolean);
@@ -1577,20 +1916,14 @@ async function runFundBulkImport() {
     const { ticker, qty } = entries[i];
     prog.innerHTML = `Fetching <span>${ticker}</span> (${i + 1} of ${entries.length})…`;
     if (funds.find(f => f.ticker === ticker)) { skipped++; continue; }
-
-    // Use MFAPI for Indian MF tickers
-    const quote = INDIAN_MF_CODES[ticker]
-      ? await fetchIndianMFNav(ticker)
-      : await fetchQuote(ticker);
-
+    const quote = await fetchQuote(ticker);
     if (!quote) { failed++; continue; }
-    const type = INDIAN_MF_CODES[ticker] ? 'INF' : detectFundType(quote.quoteType, ticker);
-    const currency = quote.currency || 'USD';
-    funds.push({ ticker, type, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [], currency });
+    const type = detectFundType(quote.quoteType, ticker);
+    funds.push({ ticker, type, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [] });
     added++;
   }
   prog.innerHTML = 'Loading history…';
-  await Promise.all(funds.filter(f => !f.history || f.history.length === 0).map(f => loadFundHistory(f)));
+  await Promise.all(funds.filter(f => f.history.length === 0).map(f => loadFundHistory(f)));
   saveFunds();
   renderFunds();
   prog.innerHTML = `<span>✓ Done:</span> ${added} added · ${skipped} skipped · ${failed} not found`;
@@ -1632,6 +1965,7 @@ function selectResult(ticker, name, dropdownId, inputId, isFund) {
   closeDropdown(dropdownId);
   if (isFund) selectedFundTicker = ticker;
   else selectedSearchTicker = ticker;
+  // Auto-add immediately when selected from dropdown
   setTimeout(() => { isFund ? addFund() : addStock(); }, 100);
 }
 
@@ -1649,6 +1983,7 @@ function onFundKey(e) {
   if (e.key === 'Enter') { closeDropdown('fund-ticker-dropdown'); addFund(); }
 }
 
+// Use mousedown instead of click so dropdown item registers before blur closes it
 document.addEventListener('mousedown', e => {
   const inTickerDd = e.target.closest('#ticker-dropdown');
   const inTickerIn = e.target.closest('#ticker-input');
@@ -1697,7 +2032,355 @@ function importData(event) {
     }
   };
   reader.readAsText(file);
-  event.target.value = '';
+  event.target.value = ''; // reset so same file can be re-imported
+}
+
+/* ============================================================
+   INDIAN MUTUAL FUNDS — AMFI NAV DATA
+   ============================================================ */
+const MF_FUNDS = [
+  {
+    ticker: 'AXIS-ARB',
+    name: 'Axis Arbitrage Fund — Regular Plan Growth',
+    amfiCode: '130771',
+    units: 25712,
+    avgNav: 19.45,
+    invested: 499975,
+  },
+  {
+    ticker: 'HDFC-ARB',
+    name: 'HDFC Arbitrage Fund — Wholesale Growth',
+    amfiCode: '106793',
+    units: 31362.12,
+    avgNav: 31.88,
+    invested: 999950,
+  },
+  {
+    ticker: 'SBI-ARB',
+    name: 'SBI Arbitrage Opportunities Fund — Regular',
+    amfiCode: '104457',
+    units: 28405.25,
+    avgNav: 35.20,
+    invested: 999950,
+  },
+];
+
+let mfNavData = {}; // { amfiCode: { nav, date, change } }
+
+async function fetchAMFINav(amfiCode, fundName) {
+  try {
+    const r = await fetch(`https://api.mfapi.in/mf/${amfiCode}`,
+      { signal: AbortSignal.timeout(9000) });
+    if (!r.ok) return null;
+    const d = await r.json();
+    if (!d || !d.data || d.data.length < 2) return null;
+    const history = d.data.slice(0, 30).reverse().map(e => parseFloat(e.nav));
+    const nav     = history[history.length - 1];
+    const prevNav = history[history.length - 2] || nav;
+    const change  = prevNav ? ((nav - prevNav) / prevNav) * 100 : 0;
+    return { nav, date: d.data[0].date, prevNav, change, history, schemeName: d.meta?.scheme_name };
+  } catch(e) { return null; }
+}
+
+async function refreshMF() {
+  document.getElementById('mf-holdings-list').innerHTML = '<div class="loading-row"><span class="spin">↻</span> Fetching NAV from AMFI…</div>';
+
+  // Fetch all NAVs in parallel
+  const results = await Promise.all(MF_FUNDS.map(f => fetchAMFINav(f.amfiCode, f.name)));
+  results.forEach((r, i) => {
+    if (r) mfNavData[MF_FUNDS[i].amfiCode] = r;
+  });
+
+  renderMF();
+}
+
+function renderMF() {
+  let totalInvested = 0, totalCurrent = 0, totalToday = 0;
+
+  const rows = MF_FUNDS.map(f => {
+    const navInfo  = mfNavData[f.amfiCode];
+    const nav      = navInfo ? navInfo.nav : f.avgNav;
+    const change   = navInfo ? navInfo.change : 0;
+    const date     = navInfo ? navInfo.date : '—';
+    const history  = navInfo ? navInfo.history : [];
+    const current  = nav * f.units;
+    const gain     = current - f.invested;
+    const gainPct  = ((gain / f.invested) * 100).toFixed(2);
+    const todayChg = current * (change / 100);
+
+    totalInvested += f.invested;
+    totalCurrent  += current;
+    totalToday    += todayChg;
+
+    const cls = change >= 0 ? 'up' : 'down';
+    const sparkId = 'mfsp_' + f.ticker;
+    return { f, nav, change, date, history, current, gain, gainPct, todayChg, cls, sparkId };
+  });
+
+  const totalGain = totalCurrent - totalInvested;
+  const gainPct   = ((totalGain / totalInvested) * 100).toFixed(2);
+  const progress  = Math.min(100, ((totalCurrent / totalInvested) * 100)).toFixed(1);
+
+  // Update metrics
+  document.getElementById('mf-invested').textContent = '₹' + Math.round(totalInvested).toLocaleString('en-IN');
+  document.getElementById('mf-current').textContent  = '₹' + totalCurrent.toLocaleString('en-IN', {maximumFractionDigits:2});
+  document.getElementById('mf-gain').textContent     = '₹' + totalGain.toLocaleString('en-IN', {maximumFractionDigits:2});
+  document.getElementById('mf-gain').className       = 'metric-value ' + (totalGain >= 0 ? 'up' : 'down');
+  document.getElementById('mf-today').textContent    = (totalToday >= 0 ? '+' : '') + '₹' + Math.abs(totalToday).toLocaleString('en-IN', {maximumFractionDigits:2});
+  document.getElementById('mf-today').className      = 'metric-value ' + (totalToday >= 0 ? 'up' : 'down');
+
+  // Progress bar
+  document.getElementById('mf-bar-invested').textContent = 'Invested ₹' + Math.round(totalInvested).toLocaleString('en-IN');
+  document.getElementById('mf-bar-gain').textContent     = 'Gain ₹' + totalGain.toLocaleString('en-IN', {maximumFractionDigits:2});
+  document.getElementById('mf-bar-current').textContent  = 'Current ₹' + totalCurrent.toLocaleString('en-IN', {maximumFractionDigits:2});
+  document.getElementById('mf-progress-bar').style.width = progress + '%';
+
+  // Holdings table
+  document.getElementById('mf-holdings-list').innerHTML = rows.map(({f, nav, change, current, gain, gainPct, cls, sparkId}) => `
+    <div style="display:grid;grid-template-columns:110px 80px 1fr 90px 90px 120px 80px;gap:8px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);transition:background 0.1s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <span class="ticker">${f.ticker}</span>
+      <span class="ftype ftype-indiamf">🇮🇳 India MF</span>
+      <span class="sname">${f.name}</span>
+      <span class="price">₹${nav.toFixed(4)}</span>
+      <span class="chg ${cls}">${change >= 0 ? '+' : ''}${change.toFixed(4)}%</span>
+      <span style="font-family:var(--mono);font-size:12px;">
+        ₹${current.toLocaleString('en-IN',{maximumFractionDigits:2})}<br>
+        <span class="${gain>=0?'up':'down'}" style="font-size:11px;">₹${gain.toLocaleString('en-IN',{maximumFractionDigits:2})} (${gain>=0?'+':''}${gainPct}%)</span>
+      </span>
+      <canvas id="${sparkId}" width="80" height="36"></canvas>
+    </div>`).join('');
+
+  // Draw sparklines
+  setTimeout(() => {
+    rows.forEach(({f, cls, sparkId}) => {
+      const navInfo = mfNavData[f.amfiCode];
+      if (navInfo && navInfo.history && navInfo.history.length > 1) {
+        drawSparkline(document.getElementById(sparkId), navInfo.history.slice(-7), navInfo.change >= 0);
+      }
+    });
+  }, 50);
+
+  // Draw sparklines
+  setTimeout(() => {
+    rows.forEach(({f, history, change, sparkId}) => {
+      const canvas = document.getElementById(sparkId);
+      if (canvas && history && history.length > 1) {
+        drawSparkline(canvas, history.slice(-7), change >= 0);
+      }
+    });
+  }, 50);
+
+  // Fund breakdown cards
+  document.getElementById('mf-cards').innerHTML = rows.map(({f, nav, change, date, current, gain, gainPct, todayChg, cls}) => `
+    <div class="mf-card">
+      <div class="mf-card-header">
+        <span class="mf-card-ticker">${f.ticker}</span>
+        <span class="chg ${cls}">${change >= 0 ? '+' : ''}${change.toFixed(4)}%</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${f.name}</div>
+      <div class="mf-card-row"><span class="mf-card-label">Invested</span><span class="mf-card-val">₹${f.invested.toLocaleString('en-IN')}</span></div>
+      <div class="mf-card-row"><span class="mf-card-label">Current</span><span class="mf-card-val">₹${current.toLocaleString('en-IN', {maximumFractionDigits:2})}</span></div>
+      <div class="mf-card-row"><span class="mf-card-label">Gain</span><span class="mf-card-val ${gain >= 0 ? 'up' : 'down'}">₹${gain.toLocaleString('en-IN', {maximumFractionDigits:2})} (+${gainPct}%)</span></div>
+      <div class="mf-card-row"><span class="mf-card-label">Today</span><span class="mf-card-val ${todayChg >= 0 ? 'up' : 'down'}">${todayChg >= 0 ? '+' : ''}₹${Math.abs(todayChg).toLocaleString('en-IN', {maximumFractionDigits:2})} (${change >= 0 ? '+' : ''}${change.toFixed(4)}%)</span></div>
+      <div class="mf-card-row"><span class="mf-card-label">Units</span><span class="mf-card-val">${f.units.toLocaleString('en-IN')}</span></div>
+      <div class="mf-card-row"><span class="mf-card-label">Avg / NAV</span><span class="mf-card-val">₹${f.avgNav.toFixed(2)} / ₹${nav.toFixed(4)}</span></div>
+      <div class="mf-nav-date">NAV as of ${date}</div>
+    </div>`).join('');
+}
+
+function isIndianTicker(ticker) {
+  return ticker.includes('.NS') || ticker.includes('.BO') ||
+         ticker.includes('.BSE') || ticker.includes('.NSE');
+}
+
+/* ============================================================
+   INDIAN STOCKS
+   ============================================================ */
+function saveIndian() { localStorage.setItem('sv_indian', JSON.stringify(indianPortfolio)); }
+
+async function addIndianStock() {
+  const raw = document.getElementById('in-ticker-input').value.trim();
+  const ticker = raw.toUpperCase().split(' ')[0];
+  const qty = parseInt(document.getElementById('in-qty-input').value) || 1;
+  if (!ticker) { showToast('Enter a ticker e.g. RELIANCE.NS', true); return; }
+  if (indianPortfolio.find(s => s.ticker === ticker)) { showToast(ticker + ' already added', true); return; }
+  closeDropdown('in-ticker-dropdown');
+  const btn = document.getElementById('in-add-btn');
+  btn.disabled = true; btn.textContent = 'Fetching…';
+  const quote = await fetchQuote(ticker);
+  if (!quote) { showToast('Could not find ' + ticker, true); btn.disabled = false; btn.textContent = '+ Add stock'; return; }
+  indianPortfolio.push({ ticker, name: quote.name || ticker, qty, price: quote.price, changePct: quote.change, history: [] });
+  const hist = await fetchDaily(ticker);
+  if (hist) indianPortfolio[indianPortfolio.length-1].history = hist.map(d => d.close);
+  saveIndian();
+  renderIndian();
+  document.getElementById('in-ticker-input').value = '';
+  document.getElementById('in-qty-input').value = '';
+  btn.disabled = false; btn.textContent = '+ Add stock';
+  showToast(ticker + ' added');
+}
+
+function removeIndianStock(ticker) {
+  indianPortfolio = indianPortfolio.filter(s => s.ticker !== ticker);
+  saveIndian();
+  renderIndian();
+}
+
+async function refreshIndian() {
+  if (!indianPortfolio.length) return;
+  showToast('Updating Indian stock prices…');
+  const quotes = await Promise.all(indianPortfolio.map(s => fetchQuote(s.ticker)));
+  quotes.forEach((q, i) => { if (q) { indianPortfolio[i].price = q.price; indianPortfolio[i].changePct = q.change; } });
+  const hists = await Promise.all(indianPortfolio.map(s => fetchDaily(s.ticker)));
+  hists.forEach((h, i) => { if (h) indianPortfolio[i].history = h.map(d => d.close); });
+  saveIndian();
+  renderIndian();
+  document.getElementById('in-last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+  showToast('Indian prices updated');
+}
+
+function renderIndian() {
+  const total = indianPortfolio.reduce((s, x) => s + (x.price||0)*(x.qty||0), 0);
+  const gainers = indianPortfolio.filter(s => (s.changePct||0) >= 0).length;
+  const losers  = indianPortfolio.length - gainers;
+  const best = indianPortfolio.length > 0 ? indianPortfolio.reduce((a,b) => (a.changePct||0)>(b.changePct||0)?a:b) : null;
+  document.getElementById('in-value').textContent = indianPortfolio.length === 0 ? '—' : '₹' + Math.round(total).toLocaleString('en-IN');
+  document.getElementById('in-count').textContent = indianPortfolio.length || '—';
+  document.getElementById('in-gainers').textContent = indianPortfolio.length === 0 ? '—' : gainers;
+  document.getElementById('in-losers').textContent  = indianPortfolio.length === 0 ? '—' : losers;
+  document.getElementById('in-best').textContent    = best ? best.ticker + ' ' + ((best.changePct||0)>=0?'+':'') + (best.changePct||0).toFixed(2)+'%' : '—';
+
+  if (!indianPortfolio.length) {
+    document.getElementById('indian-list').innerHTML = '<div class="empty">Add your first Indian stock above to get started.</div>';
+    renderIndianChart([]);
+    return;
+  }
+
+  document.getElementById('indian-list').innerHTML = indianPortfolio.map(s => {
+    const price = s.price || 0;
+    const qty   = s.qty   || 0;
+    const changePct = s.changePct || 0;
+    const val   = '₹' + (price * qty).toLocaleString('en-IN', {maximumFractionDigits:2});
+    const cls   = changePct >= 0 ? 'up' : 'down';
+    const chgStr = (changePct>=0?'+':'') + changePct.toFixed(2) + '%';
+    const sparkId = 'insp_' + s.ticker.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="stock-row">
+      <span class="ticker">${s.ticker}</span>
+      <span class="sname">${s.name||s.ticker}</span>
+      <span class="price">₹${price.toFixed(2)}</span>
+      <span class="chg ${cls}">${chgStr}</span>
+      <span class="price">${val}</span>
+      <canvas class="sparkline-cell" id="${sparkId}" width="80" height="36"></canvas>
+      <button class="del-btn" onclick="removeIndianStock('${s.ticker}')" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+
+  indianPortfolio.forEach(s => {
+    const sparkId = 'insp_' + s.ticker.replace(/[^a-zA-Z0-9]/g,'_');
+    const canvas = document.getElementById(sparkId);
+    if (canvas && s.history && s.history.length > 1) drawSparkline(canvas, s.history.slice(-7), (s.changePct||0)>=0);
+  });
+
+  renderIndianChart(indianPortfolio);
+}
+
+function renderIndianChart(stocks) {
+  if (typeof Chart === 'undefined') return;
+  if (indianChart) indianChart.destroy();
+  const days = 30;
+  const labels = [];
+  const now = new Date();
+  for (let i = days; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    labels.push(d.toLocaleDateString('en-US', {month:'short', day:'numeric'}));
+  }
+  const data = [];
+  for (let i = 0; i <= days; i++) {
+    let val = 0;
+    stocks.forEach(s => {
+      if (s.history && s.history.length > 0) {
+        const histIdx = Math.max(0, s.history.length-1-(days-i));
+        val += (s.history[histIdx]||s.price) * s.qty;
+      }
+    });
+    data.push(+val.toFixed(2));
+  }
+  indianChart = new Chart(document.getElementById('indianChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ label:'Indian Portfolio', data: data.some(v=>v>0)?data:[], borderColor:'#ff9900', backgroundColor:'rgba(255,153,0,0.06)', fill:true, tension:0.35, pointRadius:0, borderWidth:2 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false,callbacks:{label:c=>' ₹'+Math.round(c.raw).toLocaleString('en-IN')}} }, scales:{ x:{ticks:{autoSkip:true,maxTicksLimit:8,color:'#7a8099',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}}, y:{ticks:{callback:v=>'₹'+Math.round(v/1000)+'k',color:'#7a8099',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}} } }
+  });
+}
+
+function toggleIndianBulk() {
+  const p = document.getElementById('in-bulk-panel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) document.getElementById('in-bulk-input').focus();
+}
+
+async function runIndianBulkImport() {
+  const raw = document.getElementById('in-bulk-input').value.trim();
+  if (!raw) { showToast('Paste some tickers first', true); return; }
+  const btn = document.getElementById('in-bulk-btn');
+  btn.disabled = true; btn.textContent = 'Importing…';
+  const prog = document.getElementById('in-bulk-progress');
+  const tokens = raw.replace(/,/g,' ').split(/\s+/).filter(Boolean);
+  let added=0, skipped=0, failed=0;
+  let i=0;
+  while (i < tokens.length) {
+    const t = tokens[i].toUpperCase();
+    if (!/^[A-Z0-9][A-Z0-9.\-]{0,14}$/.test(t)) { i++; continue; }
+    const next = tokens[i+1];
+    const qty = next && /^\d+$/.test(next) ? parseInt(next) : 1;
+    if (next && /^\d+$/.test(next)) i++;
+    prog.innerHTML = `Fetching <span>${t}</span>…`;
+    if (indianPortfolio.find(s => s.ticker === t)) { skipped++; i++; continue; }
+    const quote = await fetchQuote(t);
+    if (!quote) { failed++; i++; continue; }
+    indianPortfolio.push({ ticker:t, name:quote.name||t, qty, price:quote.price, changePct:quote.change, history:[] });
+    added++;
+    i++;
+  }
+  prog.innerHTML = 'Loading history…';
+  await Promise.all(indianPortfolio.filter(s=>!s.history.length).map(async s => {
+    const h = await fetchDaily(s.ticker);
+    if (h) s.history = h.map(d=>d.close);
+  }));
+  saveIndian();
+  renderIndian();
+  prog.innerHTML = `<span>✓ Done:</span> ${added} added · ${skipped} skipped · ${failed} not found`;
+  btn.disabled=false; btn.textContent='Import all →';
+  document.getElementById('in-bulk-input').value='';
+  showToast(`${added} Indian stock${added!==1?'s':''} imported`);
+}
+
+// Indian search dropdown
+let indianSearchTimer = null;
+function onIndianSearch(val) {
+  clearTimeout(indianSearchTimer);
+  const dd = document.getElementById('in-ticker-dropdown');
+  if (val.length < 2) { closeDropdown('in-ticker-dropdown'); return; }
+  // Search local DB for Indian stocks only
+  const q = val.toLowerCase();
+  const results = TICKER_DB.filter(item =>
+    (item.c === 'India' || item.c === 'India ADR') &&
+    (item.t.toLowerCase().includes(q) || item.n.toLowerCase().includes(q))
+  ).slice(0, 8);
+  if (results.length) {
+    dd.innerHTML = results.map(r =>
+      `<div class="search-item" onmousedown="event.preventDefault();document.getElementById('in-ticker-input').value='${r.t}';closeDropdown('in-ticker-dropdown');">
+        <span class="search-item-ticker">${r.t}</span>
+        <span class="search-item-name">${r.n}</span>
+        <span class="search-item-exch">India</span>
+      </div>`).join('');
+    dd.classList.add('open');
+  } else {
+    closeDropdown('in-ticker-dropdown');
+  }
+}
+function onIndianKey(e) {
+  if (e.key==='Escape') closeDropdown('in-ticker-dropdown');
+  if (e.key==='Enter') { closeDropdown('in-ticker-dropdown'); addIndianStock(); }
 }
 
 /* ============================================================
@@ -1709,11 +2392,18 @@ function switchTab(tab, el) {
   el.classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
   if (tab === 'weekly') loadWeekly();
-  if (tab === 'top10') loadTop10();
   if (tab === 'funds' && funds.length > 0) refreshFunds();
+  if (tab === 'mf') refreshMF();
+  if (tab === 'india' && indianPortfolio.length > 0) refreshIndian();
+  // Top 10 only loads on first visit — use Refresh button to reload
+  if (tab === 'top10' && allTop10Data.length === 0) loadTop10();
 }
 
-function refreshAll() { refreshPortfolio(); if (document.getElementById('panel-top10').classList.contains('active')) loadTop10(); }
+function refreshAll() {
+  refreshPortfolio();
+  if (indianPortfolio.length > 0) refreshIndian();
+  if (document.getElementById('panel-top10').classList.contains('active')) loadTop10();
+}
 
 /* ============================================================
    UTILITIES
